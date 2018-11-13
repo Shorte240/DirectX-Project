@@ -17,7 +17,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	mesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext());
 	cubeMesh = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext());
 	sphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
-	tessellatedSphereMesh = new TessellatedSphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 1.0f, 20.0f);
+	tessellatedSphereMesh = new TessellatedSphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 2.0f, 40.0f);
 
 	leftOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, screenHeight / 2.7);
 	rightOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, screenWidth / 2.7, screenHeight / 2.7);
@@ -31,6 +31,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureShader = new TextureShader(renderer->getDevice(), hwnd);
 	depthShader = new DepthShader(renderer->getDevice(), hwnd);
 	shadowShader = new ShadowShader(renderer->getDevice(), hwnd);
+	tessellationShader = new TessellationShader(renderer->getDevice(), hwnd);
 
 	int shadowmapWidth = 2048;
 	int shadowmapHeight = 2048;
@@ -59,6 +60,14 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	lights[1]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
 
 	rotate = 0;
+
+	// Set default tessellation factor
+	tessellationFactor = 2.0f;
+
+	wavVar.elapsedTime = 0.0f;
+	wavVar.height = 0.0f;
+	wavVar.frequency = 0.0f;
+	wavVar.speed = 1.0f;
 }
 
 
@@ -185,40 +194,40 @@ void App1::finalPass()
 	shadowShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
 
 	// Render model
-	worldMatrix = renderer->getWorldMatrix();
-	worldMatrix = XMMatrixTranslation(0.f, 7.f, 5.f);
-	XMMATRIX scaleMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
-	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, rotate, 0.0f);
-	worldMatrix = XMMatrixMultiply(rotationMatrix,XMMatrixMultiply(worldMatrix, scaleMatrix));
-	model->sendData(renderer->getDeviceContext());
-	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
-	shadowShader->render(renderer->getDeviceContext(), model->getIndexCount());
+	//worldMatrix = renderer->getWorldMatrix();
+	//worldMatrix = XMMatrixTranslation(0.f, 7.f, 5.f);
+	//XMMATRIX scaleMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
+	//XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, rotate, 0.0f);
+	//worldMatrix = XMMatrixMultiply(rotationMatrix,XMMatrixMultiply(worldMatrix, scaleMatrix));
+	//model->sendData(renderer->getDeviceContext());
+	//shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
+	//shadowShader->render(renderer->getDeviceContext(), model->getIndexCount());
 
-	// Render cube
-	worldMatrix = renderer->getWorldMatrix();
-	XMMATRIX cubetranslateMatrix = XMMatrixTranslation(10.5f, 0.0f, 0.f);
-	XMMATRIX cuberotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.0f, (rotate * 2.0f));
-	XMMATRIX cubetranslateMatrix2 = XMMatrixTranslation(0.f, 1.f, 3.75f);
-	worldMatrix = cubetranslateMatrix * cuberotationMatrix * cubetranslateMatrix2;
-	cubeMesh->sendData(renderer->getDeviceContext());
-	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("bunny"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
-	shadowShader->render(renderer->getDeviceContext(), cubeMesh->getIndexCount());
+	//// Render cube
+	//worldMatrix = renderer->getWorldMatrix();
+	//XMMATRIX cubetranslateMatrix = XMMatrixTranslation(10.5f, 0.0f, 0.f);
+	//XMMATRIX cuberotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, 0.0f, (rotate * 2.0f));
+	//XMMATRIX cubetranslateMatrix2 = XMMatrixTranslation(0.f, 1.f, 3.75f);
+	//worldMatrix = cubetranslateMatrix * cuberotationMatrix * cubetranslateMatrix2;
+	//cubeMesh->sendData(renderer->getDeviceContext());
+	//shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("bunny"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
+	//shadowShader->render(renderer->getDeviceContext(), cubeMesh->getIndexCount());
 
-	// Render sphere
-	worldMatrix = renderer->getWorldMatrix();
-	XMMATRIX translateMatrix = XMMatrixTranslation(-10.5f, 0.0f, 0.f);
-	XMMATRIX rotationMatrix2 = XMMatrixRotationRollPitchYaw(0.0f, (rotate * 2.0f), 0.0f);
-	XMMATRIX translateMatrix2 = XMMatrixTranslation(0.f, 1.f, 3.75f);
-	worldMatrix = translateMatrix * rotationMatrix2 * translateMatrix2;
-	sphereMesh->sendData(renderer->getDeviceContext());
-	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("wood"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
-	shadowShader->render(renderer->getDeviceContext(), sphereMesh->getIndexCount());
+	//// Render sphere
+	//worldMatrix = renderer->getWorldMatrix();
+	//XMMATRIX translateMatrix = XMMatrixTranslation(-10.5f, 0.0f, 0.f);
+	//XMMATRIX rotationMatrix2 = XMMatrixRotationRollPitchYaw(0.0f, (rotate * 2.0f), 0.0f);
+	//XMMATRIX translateMatrix2 = XMMatrixTranslation(0.f, 1.f, 3.75f);
+	//worldMatrix = translateMatrix * rotationMatrix2 * translateMatrix2;
+	//sphereMesh->sendData(renderer->getDeviceContext());
+	//shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("wood"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
+	//shadowShader->render(renderer->getDeviceContext(), sphereMesh->getIndexCount());
 
 	// Render tessellated sphere
 	worldMatrix = renderer->getWorldMatrix();
 	tessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("wood"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
-	shadowShader->render(renderer->getDeviceContext(), tessellatedSphereMesh->getIndexCount());
+	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("brick"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
+	tessellationShader->render(renderer->getDeviceContext(), tessellatedSphereMesh->getIndexCount());
 
 	renderer->setZBuffer(false);
 	worldMatrix = renderer->getWorldMatrix();

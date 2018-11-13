@@ -1,0 +1,79 @@
+// Tessellation domain shader
+// After tessellation the domain shader processes the all the vertices
+
+cbuffer MatrixBuffer : register(b0)
+{
+	matrix worldMatrix;
+	matrix viewMatrix;
+	matrix projectionMatrix;
+};
+
+cbuffer TimeBuffer : register(b1)
+{
+	float time;
+	float height;
+	float frequency;
+	float speed;
+};
+
+struct ConstantOutputType
+{
+	float edges[4] : SV_TessFactor;
+	float inside[2] : SV_InsideTessFactor;
+};
+
+struct InputType
+{
+	float3 position : POSITION;
+	float2 tex : TEXCOORD0;
+	float3 normal : NORMAL;
+	float3 colour : COLOR;
+};
+
+struct OutputType
+{
+	float4 position : SV_POSITION;
+	float2 tex : TEXCOORD0;
+	float3 normal : NORMAL;
+	float3 colour : COLOR;
+};
+
+[domain("quad")]
+OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, const OutputPatch<InputType, 4> patch)
+{
+	float3 vertexPosition, vertexNormal;
+	OutputType output;
+
+	// Determine the position of the new vertex.
+	float3 v1 = lerp(patch[0].position, patch[1].position, uvwCoord.y);
+	float3 v2 = lerp(patch[3].position, patch[2].position, uvwCoord.y);
+	vertexPosition = lerp(v1, v2, uvwCoord.x);
+
+	// Determine the normal of the new vertex.
+	float3 n1 = lerp(patch[0].normal, patch[1].normal, uvwCoord.y);
+	float3 n2 = lerp(patch[3].normal, patch[2].normal, uvwCoord.y);
+	vertexNormal = lerp(n1, n2, uvwCoord.x);
+
+	// Offset position based on sine wave
+	//vertexPosition.y = sin(vertexPosition.x + time);
+	vertexPosition.y = vertexPosition.y + (height * (sin(((vertexPosition.x * frequency) + (time * speed)))));
+
+	// Modify the normals
+	vertexNormal.x = 1 - cos(vertexPosition.x + time);
+	vertexNormal.y = 1 - abs(cos(vertexPosition.x + time));
+
+	// Calculate the position of the new vertex against the world, view, and projection matrices.
+	output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
+	output.position = mul(output.position, viewMatrix);
+	output.position = mul(output.position, projectionMatrix);
+
+	// Calculate the normal vector against the world matrix only and normalise.
+	output.normal = mul(vertexNormal, (float3x3) worldMatrix);
+	output.normal = normalize(output.normal);
+
+	// Send the input color into the pixel shader.
+	output.colour = patch[0].colour;
+
+	return output;
+}
+

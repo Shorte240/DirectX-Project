@@ -8,6 +8,7 @@
 #include "ShadowShader.h"
 #include "DepthShader.h"
 #include "TessellatedSphereMesh.h"
+#include "TessellationShader.h"
 
 #define MAX_LIGHTS 2
 
@@ -29,6 +30,10 @@ protected:
 
 private:
 	TextureShader* textureShader;
+	ShadowShader* shadowShader;
+	DepthShader* depthShader;
+	TessellationShader* tessellationShader;
+
 	PlaneMesh* mesh;
 	CubeMesh* cubeMesh;
 	SphereMesh* sphereMesh;
@@ -38,12 +43,24 @@ private:
 
 	Light* lights[MAX_LIGHTS];
 	Model* model;
-	ShadowShader* shadowShader;
-	DepthShader* depthShader;
+	
 
 	RenderTexture* shadowMap;
 	RenderTexture* shadowMap2;
+
+	// Variables
+	float tessellationFactor;
 	float rotate;
+
+	struct WaveVariables
+	{
+		float elapsedTime;
+		float height;
+		float frequency;
+		float speed;
+	};
+
+	WaveVariables wavVar;
 };
 
 #endif

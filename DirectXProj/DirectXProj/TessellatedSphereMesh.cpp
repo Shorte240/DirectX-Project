@@ -25,6 +25,10 @@ void TessellatedSphereMesh::initBuffers(ID3D11Device * device)
 	VertexType* vertices = new VertexType[vertexCount];
 	unsigned long* indices = new unsigned long[indexCount];
 
+	std::vector<XMFLOAT3> verts;
+	std::vector<XMFLOAT2> texs;
+	std::vector<XMFLOAT3> norms;
+
 	int r = radius;
 	int d = 2 * r;
 
@@ -69,26 +73,29 @@ void TessellatedSphereMesh::initBuffers(ID3D11Device * device)
 			float u4 = u3;
 			float v4 = v1;
 
-			vertices[lon].normal = XMFLOAT3(x1, y1, z1);
-			vertices[lon].texture = XMFLOAT2(u1, v1); // GREEN
-			vertices[lon].position = XMFLOAT3(x1, y1, z1);  // Top left.
-			indices[lon] = lon;  // Top left.
+			verts.push_back(XMFLOAT3(x1, y1, z1));
+			verts.push_back(XMFLOAT3(x2, y2, z2));
+			verts.push_back(XMFLOAT3(x3, y3, z3));
+			verts.push_back(XMFLOAT3(x4, y4, z4));
 
-			vertices[lon + 1].normal = XMFLOAT3(x1, y1, z1);
-			vertices[lon + 1].texture = XMFLOAT2(u1, v1); // GREEN
-			vertices[lon + 1].position = XMFLOAT3(x1, y1, z1);  // Top left.
-			indices[lon + 1] = (lon + 1);  // Bottom left.
+			texs.push_back(XMFLOAT2(u1, v1));
+			texs.push_back(XMFLOAT2(u2, v2));
+			texs.push_back(XMFLOAT2(u3, v3));
+			texs.push_back(XMFLOAT2(u4, v4));
 
-			vertices[lon + 2].normal = XMFLOAT3(x1, y1, z1);
-			vertices[lon + 2].texture = XMFLOAT2(u1, v1); // GREEN
-			vertices[lon + 2].position = XMFLOAT3(x1, y1, z1);  // Top left.
-			indices[lon + 2] = (lon + 2);  // Bottom right.
-
-			vertices[lon + 3].normal = XMFLOAT3(x1, y1, z1);
-			vertices[lon + 3].texture = XMFLOAT2(u1, v1); // GREEN
-			vertices[lon + 3].position = XMFLOAT3(x1, y1, z1);  // Top left.
-			indices[lon + 3] = (lon + 3);  // Top right.
+			norms.push_back(XMFLOAT3(x1, y1, z1));
+			norms.push_back(XMFLOAT3(x2, y2, z2));
+			norms.push_back(XMFLOAT3(x3, y3, z3));
+			norms.push_back(XMFLOAT3(x4, y4, z4));
 		}
+	}
+
+	for (int i = 0; i < vertexCount; i++)
+	{
+		vertices[i].position = verts[i];
+		vertices[i].texture = texs[i];
+		vertices[i].normal = norms[i];
+		indices[i] = i;
 	}
 
 	D3D11_BUFFER_DESC vertexBufferDesc = { sizeof(VertexType) * vertexCount, D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, 0, 0, 0 };
@@ -112,7 +119,7 @@ void TessellatedSphereMesh::sendData(ID3D11DeviceContext * deviceContext, D3D11_
 	unsigned int offset;
 
 	// Set vertex buffer stride and offset.
-	stride = sizeof(VertexType_Colour);
+	stride = sizeof(VertexType);
 	offset = 0;
 
 	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);

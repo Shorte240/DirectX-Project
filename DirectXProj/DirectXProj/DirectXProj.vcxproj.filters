@@ -25,6 +25,18 @@
     <Filter Include="Source Files\Shapes">
       <UniqueIdentifier>{6a2fc4da-3e2d-47b4-882a-3441c118fb1a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Depth">
+      <UniqueIdentifier>{2ee74d0c-8ae4-47fc-aab6-0826df1de74d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shadow">
+      <UniqueIdentifier>{49f68c93-b6bd-4b20-9069-de78f455e56e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Tessellation">
+      <UniqueIdentifier>{ba63fb81-6b17-4ec2-92bb-725536d26e69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Texture">
+      <UniqueIdentifier>{12232e87-6cc4-41c0-99b0-4897f431ed74}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App1.cpp">
@@ -45,6 +57,9 @@
     <ClCompile Include="TessellatedSphereMesh.cpp">
       <Filter>Source Files\Shapes</Filter>
     </ClCompile>
+    <ClCompile Include="TessellationShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DepthShader.h">
@@ -62,25 +77,40 @@
     <ClInclude Include="TessellatedSphereMesh.h">
       <Filter>Header Files\Shapes</Filter>
     </ClInclude>
+    <ClInclude Include="TessellationShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="depth_ps.hlsl">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Depth</Filter>
     </FxCompile>
     <FxCompile Include="depth_vs.hlsl">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Depth</Filter>
     </FxCompile>
     <FxCompile Include="shadow_ps.hlsl">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Shadow</Filter>
     </FxCompile>
     <FxCompile Include="shadow_vs.hlsl">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellation_ds.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellation_hs.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellation_ps.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellation_vs.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
     </FxCompile>
     <FxCompile Include="texture_ps.hlsl">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Texture</Filter>
     </FxCompile>
     <FxCompile Include="texture_vs.hlsl">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Texture</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
