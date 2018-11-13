@@ -7,6 +7,7 @@
 #include "TextureShader.h"
 #include "ShadowShader.h"
 #include "DepthShader.h"
+#include "TessellatedSphereMesh.h"
 
 #define MAX_LIGHTS 2
 
@@ -33,6 +34,7 @@ private:
 	SphereMesh* sphereMesh;
 	OrthoMesh* leftOrthoMesh;
 	OrthoMesh* rightOrthoMesh;
+	TessellatedSphereMesh* tessellatedSphereMesh;
 
 	Light* lights[MAX_LIGHTS];
 	Model* model;

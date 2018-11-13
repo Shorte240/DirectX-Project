@@ -1,5 +1,6 @@
-// Lab1.cpp
-// Lab 1 example, simple coloured triangle mesh
+// App1.cpp
+// Project showcasing Vertex Manipulation, Tessellation, Post Processing
+// Lighting and Shadows, Geometry Shader
 #include "App1.h"
 
 App1::App1()
@@ -16,6 +17,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	mesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext());
 	cubeMesh = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext());
 	sphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
+	tessellatedSphereMesh = new TessellatedSphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 1.0f, 20.0f);
 
 	leftOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, screenHeight / 2.7);
 	rightOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, screenWidth / 2.7, screenHeight / 2.7);
@@ -153,6 +155,12 @@ void App1::depthPass(Light* light, RenderTexture* rTex)
 	depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
 	depthShader->render(renderer->getDeviceContext(), sphereMesh->getIndexCount());
 
+	// Render tessellated sphere
+	worldMatrix = renderer->getWorldMatrix();
+	tessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
+	depthShader->render(renderer->getDeviceContext(), tessellatedSphereMesh->getIndexCount());
+
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
 	renderer->resetViewport();
@@ -205,6 +213,12 @@ void App1::finalPass()
 	sphereMesh->sendData(renderer->getDeviceContext());
 	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("wood"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
 	shadowShader->render(renderer->getDeviceContext(), sphereMesh->getIndexCount());
+
+	// Render tessellated sphere
+	worldMatrix = renderer->getWorldMatrix();
+	tessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("wood"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
+	shadowShader->render(renderer->getDeviceContext(), tessellatedSphereMesh->getIndexCount());
 
 	renderer->setZBuffer(false);
 	worldMatrix = renderer->getWorldMatrix();

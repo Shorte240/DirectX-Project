@@ -130,12 +130,14 @@
     <ClCompile Include="DepthShader.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ShadowShader.cpp" />
+    <ClCompile Include="TessellatedSphereMesh.cpp" />
     <ClCompile Include="TextureShader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h" />
     <ClInclude Include="DepthShader.h" />
     <ClInclude Include="ShadowShader.h" />
+    <ClInclude Include="TessellatedSphereMesh.h" />
     <ClInclude Include="TextureShader.h" />
   </ItemGroup>
   <ItemGroup>
