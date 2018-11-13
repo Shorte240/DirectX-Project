@@ -4,9 +4,9 @@
 
 TessellatedSphereMesh::TessellatedSphereMesh(ID3D11Device* device, ID3D11DeviceContext* deviceContext, float radius_, float segments_)
 {
-	initBuffers(device);
 	radius = radius_;
 	segments = segments_;
+	initBuffers(device);
 }
 
 TessellatedSphereMesh::~TessellatedSphereMesh()

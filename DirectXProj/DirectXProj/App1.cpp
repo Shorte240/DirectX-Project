@@ -106,8 +106,8 @@ bool App1::frame()
 bool App1::render()
 {
 	// Perform depth pass
-	depthPass(lights[0], shadowMap);
-	depthPass(lights[1], shadowMap2);
+	/*depthPass(lights[0], shadowMap);
+	depthPass(lights[1], shadowMap2);*/
 	// Render scene
 	finalPass();
 
@@ -223,8 +223,11 @@ void App1::finalPass()
 	//shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("wood"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
 	//shadowShader->render(renderer->getDeviceContext(), sphereMesh->getIndexCount());
 
+	// Get the elapsed time
+	wavVar.elapsedTime += timer->getTime();
+
 	// Render tessellated sphere
-	worldMatrix = renderer->getWorldMatrix();
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
 	tessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("brick"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
 	tessellationShader->render(renderer->getDeviceContext(), tessellatedSphereMesh->getIndexCount());
@@ -261,6 +264,10 @@ void App1::gui()
 	// Build UI
 	ImGui::Text("FPS: %.2f", timer->getFPS());
 	ImGui::Checkbox("Wireframe mode", &wireframeToggle);
+	ImGui::SliderFloat("Tessellation Factor", &tessellationFactor, 1.0f, 64.0f);
+	ImGui::SliderFloat("Wave Height", &wavVar.height, 0, 2.0f);
+	ImGui::SliderFloat("Wave Frequency", &wavVar.frequency, 0, 15);
+	ImGui::SliderFloat("Wave Speed", &wavVar.speed, 0, 5);
 
 	// Render UI
 	ImGui::Render();
