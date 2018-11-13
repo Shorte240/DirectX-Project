@@ -1,6 +1,10 @@
 // Tessellation pixel shader
 // Output colour passed to stage.
 
+Texture2D shaderTexture : register(t0);
+
+SamplerState SampleType : register(s0);
+
 struct InputType
 {
 	float4 position : SV_POSITION;
@@ -11,5 +15,9 @@ struct InputType
 
 float4 main(InputType input) : SV_TARGET
 {
-	return input.colour;
+    float4 textureColour = shaderTexture.Sample(SampleType, input.tex);
+
+	//return input.colour;
+
+    return textureColour;
 }

@@ -42,12 +42,18 @@ struct OutputType
 OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, const OutputPatch<InputType, 4> patch)
 {
 	float3 vertexPosition, vertexNormal;
+    float2 vertexTexCoords;
 	OutputType output;
 
 	// Determine the position of the new vertex.
 	float3 v1 = lerp(patch[0].position, patch[1].position, uvwCoord.y);
 	float3 v2 = lerp(patch[3].position, patch[2].position, uvwCoord.y);
-	vertexPosition = lerp(v1, v2, uvwCoord.x);
+    vertexPosition = lerp(v1, v2, uvwCoord.x);
+
+    // Determine the texCoord of the new vertex.
+    float2 t1 = lerp(patch[0].tex, patch[1].tex, uvwCoord.y);
+    float2 t2 = lerp(patch[3].tex, patch[2].tex, uvwCoord.y);
+    vertexTexCoords = lerp(t1, t2, uvwCoord.x);
 
 	// Determine the normal of the new vertex.
 	float3 n1 = lerp(patch[0].normal, patch[1].normal, uvwCoord.y);
@@ -59,13 +65,17 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
 	vertexPosition.y = vertexPosition.y + (height * (sin(((vertexPosition.x * frequency) + (time * speed)))));
 
 	// Modify the normals
-	vertexNormal.x = 1 - cos(vertexPosition.x + time);
-	vertexNormal.y = 1 - abs(cos(vertexPosition.x + time));
+	//vertexNormal.x = 1 - cos(vertexPosition.x + time);
+	//vertexNormal.y = 1 - abs(cos(vertexPosition.x + time));
 
 	// Calculate the position of the new vertex against the world, view, and projection matrices.
 	output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);
+
+    // Calculate the tex coords.
+    output.tex.x = vertexTexCoords.x;
+    output.tex.y = vertexTexCoords.y;
 
 	// Calculate the normal vector against the world matrix only and normalise.
 	output.normal = mul(vertexNormal, (float3x3) worldMatrix);
