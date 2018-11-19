@@ -33,7 +33,7 @@ float4 main(InputType input) : SV_TARGET
 {
     float depthValue;
     float lightDepthValue;
-    float shadowMapBias = 0.005f;
+    float shadowMapBias = 0.01f;
     float4 colour = float4(0.f, 0.f, 0.f, 1.f);
     float4 textureColour = shaderTexture.Sample(diffuseSampler, input.tex);
     bool isLit = false;
@@ -49,7 +49,7 @@ float4 main(InputType input) : SV_TARGET
         if (!(pTexCoord.x < 0.f || pTexCoord.x > 1.f || pTexCoord.y < 0.f || pTexCoord.y > 1.f))
         {
             // Sample the shadow map (get depth of geometry)
-            if (i == 0)
+            if (i < 1)
             {
                 depthValue = depthMapTexture.Sample(shadowSampler, pTexCoord).r;
             }
@@ -77,6 +77,6 @@ float4 main(InputType input) : SV_TARGET
     else
     {
         colour = saturate(colour + ambient[0]);
-        return saturate(colour) * textureColour;
+        return saturate(colour * textureColour);
     }
 }

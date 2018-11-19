@@ -60,6 +60,9 @@
     <ClCompile Include="TessellationShader.cpp">
       <Filter>Source Files\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="TessellationDepthShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DepthShader.h">
@@ -78,6 +81,9 @@
       <Filter>Header Files\Shapes</Filter>
     </ClInclude>
     <ClInclude Include="TessellationShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="TessellationDepthShader.h">
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
@@ -111,6 +117,12 @@
     </FxCompile>
     <FxCompile Include="texture_vs.hlsl">
       <Filter>Resource Files\Texture</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellationDepth_ps.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellationDepth_ds.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

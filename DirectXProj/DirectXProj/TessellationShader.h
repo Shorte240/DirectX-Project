@@ -1,12 +1,11 @@
-// Light shader.h
-// Basic single light shader setup
+// Tessellation shader.h
+// Tessellation setup
 #pragma once
 
 #include "DXF.h"
 
 using namespace std;
 using namespace DirectX;
-
 
 class TessellationShader : public BaseShader
 {

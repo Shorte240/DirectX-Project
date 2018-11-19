@@ -9,6 +9,7 @@
 #include "DepthShader.h"
 #include "TessellatedSphereMesh.h"
 #include "TessellationShader.h"
+#include "TessellationDepthShader.h"
 
 #define MAX_LIGHTS 2
 
@@ -33,6 +34,7 @@ private:
 	ShadowShader* shadowShader;
 	DepthShader* depthShader;
 	TessellationShader* tessellationShader;
+	TessellationDepthShader* tessellationDepthShader;
 
 	PlaneMesh* mesh;
 	CubeMesh* cubeMesh;
