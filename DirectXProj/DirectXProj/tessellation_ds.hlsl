@@ -64,7 +64,9 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
 
 	// Offset position based on sine wave
 	//vertexPosition.y = sin(vertexPosition.x + time);
+	vertexPosition.x = vertexPosition.x + (height * (sin(((vertexPosition.z * frequency) + (time * speed)))));
 	vertexPosition.y = vertexPosition.y + (height * (sin(((vertexPosition.x * frequency) + (time * speed)))));
+	vertexPosition.z = vertexPosition.z + (height * (sin(((vertexPosition.y * frequency) + (time * speed)))));
 
 	// Modify the normals
 	//vertexNormal.x = 1 - cos(vertexPosition.x + time);

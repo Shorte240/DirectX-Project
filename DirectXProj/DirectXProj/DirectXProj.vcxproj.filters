@@ -37,6 +37,9 @@
     <Filter Include="Resource Files\Texture">
       <UniqueIdentifier>{12232e87-6cc4-41c0-99b0-4897f431ed74}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Displacement">
+      <UniqueIdentifier>{c990b8d0-34c6-4aab-af8c-2037b4bdcdb4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App1.cpp">
@@ -63,6 +66,9 @@
     <ClCompile Include="TessellationDepthShader.cpp">
       <Filter>Source Files\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="DisplacementShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DepthShader.h">
@@ -84,6 +90,9 @@
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="TessellationDepthShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="DisplacementShader.h">
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
@@ -123,6 +132,12 @@
     </FxCompile>
     <FxCompile Include="tessellationDepth_ds.hlsl">
       <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="displacement_ps.hlsl">
+      <Filter>Resource Files\Displacement</Filter>
+    </FxCompile>
+    <FxCompile Include="displacement_vs.hlsl">
+      <Filter>Resource Files\Displacement</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

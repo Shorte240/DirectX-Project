@@ -41,7 +41,8 @@ private:
 	SphereMesh* sphereMesh;
 	OrthoMesh* leftOrthoMesh;
 	OrthoMesh* rightOrthoMesh;
-	TessellatedSphereMesh* tessellatedSphereMesh;
+	TessellatedSphereMesh* waterTessellatedSphereMesh;
+	TessellatedSphereMesh* earthTessellatedSphereMesh;
 
 	Light* lights[MAX_LIGHTS];
 	Model* model;
