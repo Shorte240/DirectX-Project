@@ -27,6 +27,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture("brick", L"res/brick1.dds");
 	textureMgr->loadTexture("wood", L"res/wood.png");
 	textureMgr->loadTexture("bunny", L"res/bunny.png");
+	textureMgr->loadTexture("water", L"res/water.jpg");
 
 	textureShader = new TextureShader(renderer->getDevice(), hwnd);
 	depthShader = new DepthShader(renderer->getDevice(), hwnd);
@@ -234,7 +235,7 @@ void App1::finalPass()
 	// Render tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
 	tessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("brick"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
+	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
 	tessellationShader->render(renderer->getDeviceContext(), tessellatedSphereMesh->getIndexCount());
 
 	renderer->setZBuffer(false);
