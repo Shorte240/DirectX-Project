@@ -149,9 +149,9 @@ void App1::depthPass(Light* light, RenderTexture* rTex)
 
 	// Render earth tessellated sphere
 	worldMatrix = XMMatrixTranslation(5.0f, 5.0f, 0.0f);
-	sphereMesh->sendData(renderer->getDeviceContext());
+	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	tessellationDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture("height"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
-	tessellationDepthShader->render(renderer->getDeviceContext(), sphereMesh->getIndexCount());
+	tessellationDepthShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
 
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
@@ -186,10 +186,10 @@ void App1::finalPass()
 	tessellationShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
 
 	// Render earth tessellated sphere
-	worldMatrix = XMMatrixTranslation(5.0f, 5.0f, 0.0f);
-	sphereMesh->sendData(renderer->getDeviceContext());
-	displacementShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("brick"), textureMgr->getTexture("height"), lights[0], XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed));
-	displacementShader->render(renderer->getDeviceContext(), sphereMesh->getIndexCount());
+	worldMatrix = XMMatrixTranslation(-5.0f, 5.0f, 0.0f);
+	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	displacementShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("brick"), textureMgr->getTexture("height"), lights[1], XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed));
+	displacementShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
 
 	renderer->setZBuffer(false);
 	worldMatrix = renderer->getWorldMatrix();

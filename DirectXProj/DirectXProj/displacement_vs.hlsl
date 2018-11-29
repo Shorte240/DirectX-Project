@@ -35,9 +35,15 @@ OutputType main(InputType input)
 {
 	OutputType output;
 
+
+
+	// Calculate the normal vector against the world matrix only and normalise.
+	output.normal = mul(input.normal, (float3x3)worldMatrix);
+	output.normal = normalize(output.normal);
+
 	// Sample the texture. Use colour to alter height of plane.
 	float4 textureColour = heightTex.SampleLevel(sampler0, input.tex, 0, 0);
-	input.position = input.position / (textureColour.r * height);
+	input.position.xyz += input.normal * (textureColour.r * height);
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
 	output.position = mul(input.position, worldMatrix);
@@ -46,10 +52,6 @@ OutputType main(InputType input)
 
 	// Store the texture coordinates for the pixel shader.
 	output.tex = input.tex;
-
-	// Calculate the normal vector against the world matrix only and normalise.
-	output.normal = mul(input.normal, (float3x3)worldMatrix);
-	output.normal = normalize(output.normal);
 
 	return output;
 }
