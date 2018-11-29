@@ -4,12 +4,8 @@
 
 // Includes
 #include "DXF.h"	// include dxframework
-#include "TextureShader.h"
-#include "ShadowShader.h"
-#include "DepthShader.h"
 #include "TessellatedSphereMesh.h"
-#include "TessellationShader.h"
-#include "TessellationDepthShader.h"
+#include "Shaders.h"
 
 #define MAX_LIGHTS 2
 
@@ -35,6 +31,7 @@ private:
 	DepthShader* depthShader;
 	TessellationShader* tessellationShader;
 	TessellationDepthShader* tessellationDepthShader;
+	DisplacementShader* displacementShader;
 
 	PlaneMesh* mesh;
 	CubeMesh* cubeMesh;

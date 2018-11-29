@@ -34,6 +34,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	shadowShader = new ShadowShader(renderer->getDevice(), hwnd);
 	tessellationShader = new TessellationShader(renderer->getDevice(), hwnd);
 	tessellationDepthShader = new TessellationDepthShader(renderer->getDevice(), hwnd);
+	displacementShader = new DisplacementShader(renderer->getDevice(), hwnd);
 
 	int shadowmapWidth = 2048;
 	int shadowmapHeight = 2048;
@@ -148,9 +149,9 @@ void App1::depthPass(Light* light, RenderTexture* rTex)
 
 	// Render earth tessellated sphere
 	worldMatrix = XMMatrixTranslation(5.0f, 5.0f, 0.0f);
-	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	sphereMesh->sendData(renderer->getDeviceContext());
 	tessellationDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture("height"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
-	tessellationDepthShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
+	tessellationDepthShader->render(renderer->getDeviceContext(), sphereMesh->getIndexCount());
 
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
@@ -186,9 +187,9 @@ void App1::finalPass()
 
 	// Render earth tessellated sphere
 	worldMatrix = XMMatrixTranslation(5.0f, 5.0f, 0.0f);
-	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
-	tessellationShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
+	sphereMesh->sendData(renderer->getDeviceContext());
+	displacementShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("brick"), textureMgr->getTexture("height"), lights[0], XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed));
+	displacementShader->render(renderer->getDeviceContext(), sphereMesh->getIndexCount());
 
 	renderer->setZBuffer(false);
 	worldMatrix = renderer->getWorldMatrix();
@@ -223,7 +224,7 @@ void App1::gui()
 	ImGui::Text("FPS: %.2f", timer->getFPS());
 	ImGui::Checkbox("Wireframe mode", &wireframeToggle);
 	ImGui::SliderFloat("Tessellation Factor", &tessellationFactor, 1.0f, 64.0f);
-	ImGui::SliderFloat("Wave Height", &wavVar.height, 0, 2.0f);
+	ImGui::SliderFloat("Wave Height", &wavVar.height, 0, 20.0f);
 	ImGui::SliderFloat("Wave Frequency", &wavVar.frequency, 0, 15);
 	ImGui::SliderFloat("Wave Speed", &wavVar.speed, 0, 5);
 

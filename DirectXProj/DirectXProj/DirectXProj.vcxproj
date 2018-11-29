@@ -140,6 +140,7 @@
     <ClInclude Include="App1.h" />
     <ClInclude Include="DepthShader.h" />
     <ClInclude Include="DisplacementShader.h" />
+    <ClInclude Include="Shaders.h" />
     <ClInclude Include="ShadowShader.h" />
     <ClInclude Include="TessellatedSphereMesh.h" />
     <ClInclude Include="TessellationDepthShader.h" />

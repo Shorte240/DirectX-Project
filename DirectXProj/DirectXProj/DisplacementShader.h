@@ -22,6 +22,7 @@ private:
 	struct HeightBufferType
 	{
 		float height;
+		XMFLOAT3 padding;
 	};
 public:
 	DisplacementShader(ID3D11Device* device, HWND hwnd);

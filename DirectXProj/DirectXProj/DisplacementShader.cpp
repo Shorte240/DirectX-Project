@@ -115,9 +115,10 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	//Additional
 	// Send light data to pixel shader
 	HeightBufferType* heightPtr;
-	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	deviceContext->Map(heightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	heightPtr = (HeightBufferType*)mappedResource.pData;
 	heightPtr->height = waveVariables.y;
+	heightPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	deviceContext->Unmap(heightBuffer, 0);
 	deviceContext->VSSetConstantBuffers(1, 1, &heightBuffer);
 
@@ -135,4 +136,8 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	// Set shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &heightTex);
 	deviceContext->PSSetSamplers(0, 1, &sampleState);
+
+	// Set shader texture resource for height map in vertex shader.
+	deviceContext->VSSetShaderResources(0, 1, &heightTex);
+	deviceContext->VSSetSamplers(0, 1, &sampleState);
 }

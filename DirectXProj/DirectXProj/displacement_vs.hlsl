@@ -14,6 +14,7 @@ cbuffer MatrixBuffer : register(b0)
 cbuffer HeightBuffer : register(b1)
 {
 	float height;
+	float3 padding;
 };
 
 struct InputType
@@ -36,7 +37,7 @@ OutputType main(InputType input)
 
 	// Sample the texture. Use colour to alter height of plane.
 	float4 textureColour = heightTex.SampleLevel(sampler0, input.tex, 0, 0);
-	input.position.y = textureColour.r * height;
+	input.position = input.position / (textureColour.r * height);
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
 	output.position = mul(input.position, worldMatrix);
