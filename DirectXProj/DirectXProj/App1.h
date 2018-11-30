@@ -35,23 +35,19 @@ private:
 	DisplacementDepthShader* displacementDepthShader;
 
 	PlaneMesh* mesh;
-	CubeMesh* cubeMesh;
-	SphereMesh* sphereMesh;
 	OrthoMesh* leftOrthoMesh;
 	OrthoMesh* rightOrthoMesh;
 	TessellatedSphereMesh* waterTessellatedSphereMesh;
 	TessellatedSphereMesh* earthTessellatedSphereMesh;
 
-	Light* lights[MAX_LIGHTS];
-	Model* model;
-	
+	Light* lights[MAX_LIGHTS];	
 
 	RenderTexture* shadowMap;
 	RenderTexture* shadowMap2;
 
 	// Variables
 	float tessellationFactor;
-	float rotate;
+	float displacementHeight;
 
 	struct WaveVariables
 	{

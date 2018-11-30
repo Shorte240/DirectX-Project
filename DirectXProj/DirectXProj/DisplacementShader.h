@@ -48,7 +48,7 @@ public:
 	DisplacementShader(ID3D11Device* device, HWND hwnd);
 	~DisplacementShader();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* heightTex, Light* lights[MAX_LIGHTS], float tessFactor, XMFLOAT4 waveVariables, XMFLOAT3 camPos);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection, ID3D11ShaderResourceView* texture, ID3D11ShaderResourceView* heightTex, Light* lights[MAX_LIGHTS], float tessFactor, float height, XMFLOAT3 camPos);
 
 private:
 	void initShader(WCHAR* vsFilename, WCHAR* psFilename);

@@ -121,7 +121,7 @@ void DisplacementDepthShader::initShader(WCHAR * vsFilename, WCHAR * hsFilename,
 	loadDomainShader(dsFilename);
 }
 
-void DisplacementDepthShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* texture, float tessFactor, XMFLOAT4 waveVariables, XMFLOAT3 camPos)
+void DisplacementDepthShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* texture, float tessFactor, float height, XMFLOAT3 camPos)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -144,7 +144,7 @@ void DisplacementDepthShader::setShaderParameters(ID3D11DeviceContext* deviceCon
 	TimeBufferType* timePtr;
 	deviceContext->Map(timeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	timePtr = (TimeBufferType*)mappedResource.pData;
-	timePtr->height = waveVariables.y;
+	timePtr->height = height;
 	timePtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	deviceContext->Unmap(timeBuffer, 0);
 	deviceContext->DSSetConstantBuffers(1, 1, &timeBuffer);

@@ -153,7 +153,7 @@ void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR*
 	loadDomainShader(dsFilename);
 }
 
-void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext, const XMMATRIX & worldMatrix, const XMMATRIX & viewMatrix, const XMMATRIX & projectionMatrix, ID3D11ShaderResourceView * texture, ID3D11ShaderResourceView* heightTex, Light* lights[MAX_LIGHTS], float tessFactor, XMFLOAT4 waveVariables, XMFLOAT3 camPos)
+void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext, const XMMATRIX & worldMatrix, const XMMATRIX & viewMatrix, const XMMATRIX & projectionMatrix, ID3D11ShaderResourceView * texture, ID3D11ShaderResourceView* heightTex, Light* lights[MAX_LIGHTS], float tessFactor, float height, XMFLOAT3 camPos)
 {
 	HRESULT result, result2;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -214,7 +214,7 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	HeightBufferType* heightPtr;
 	deviceContext->Map(heightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	heightPtr = (HeightBufferType*)mappedResource.pData;
-	heightPtr->height = waveVariables.y;
+	heightPtr->height = height;
 	heightPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	deviceContext->Unmap(heightBuffer, 0);
 	deviceContext->DSSetConstantBuffers(1, 1, &heightBuffer);
