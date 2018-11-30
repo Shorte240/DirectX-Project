@@ -148,10 +148,10 @@ void App1::depthPass(Light* light, RenderTexture* rTex)
 	tessellationDepthShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
 
 	// Render earth tessellated sphere
-	worldMatrix = XMMatrixTranslation(5.0f, 5.0f, 0.0f);
+	/*worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
 	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	tessellationDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture("height"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
-	tessellationDepthShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
+	tessellationDepthShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());*/
 
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
@@ -186,9 +186,9 @@ void App1::finalPass()
 	tessellationShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
 
 	// Render earth tessellated sphere
-	worldMatrix = XMMatrixTranslation(-5.0f, 5.0f, 0.0f);
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
 	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	displacementShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("brick"), textureMgr->getTexture("height"), lights[1], XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed));
+	displacementShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("brick"), textureMgr->getTexture("height"), lights, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
 	displacementShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
 
 	renderer->setZBuffer(false);

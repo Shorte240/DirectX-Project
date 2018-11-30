@@ -136,10 +136,7 @@
     <FxCompile Include="tessellationDepth_ds.hlsl">
       <Filter>Resource Files\Tessellation</Filter>
     </FxCompile>
-    <FxCompile Include="displacement_ps.hlsl">
-      <Filter>Resource Files\Displacement</Filter>
-    </FxCompile>
-    <FxCompile Include="displacement_vs.hlsl">
+    <FxCompile Include="displacement_ds.hlsl">
       <Filter>Resource Files\Displacement</Filter>
     </FxCompile>
   </ItemGroup>

@@ -2,7 +2,8 @@
 
 DisplacementShader::DisplacementShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
-	initShader(L"displacement_vs.cso", L"displacement_ps.cso");
+	// Quad tessellation
+	initShader(L"tessellation_vs.cso", L"tessellation_hs.cso", L"displacement_ds.cso", L"tessellation_ps.cso");
 }
 
 DisplacementShader::~DisplacementShader()
@@ -35,6 +36,24 @@ DisplacementShader::~DisplacementShader()
 		lightBuffer = 0;
 	}
 
+	if (heightBuffer)
+	{
+		heightBuffer->Release();
+		heightBuffer = 0;
+	}
+
+	if (tessellationBuffer)
+	{
+		tessellationBuffer->Release();
+		tessellationBuffer = 0;
+	}
+
+	if (cameraBuffer)
+	{
+		cameraBuffer->Release();
+		cameraBuffer = 0;
+	}
+
 	//Release base shader components
 	BaseShader::~BaseShader();
 }
@@ -42,9 +61,12 @@ DisplacementShader::~DisplacementShader()
 void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 {
 	D3D11_BUFFER_DESC matrixBufferDesc;
+	D3D11_BUFFER_DESC matrixBufferDesc2;
 	D3D11_SAMPLER_DESC samplerDesc;
 	D3D11_BUFFER_DESC lightBufferDesc;
 	D3D11_BUFFER_DESC heightBufferDesc;
+	D3D11_BUFFER_DESC tessellationBufferDesc;
+	D3D11_BUFFER_DESC cameraBufferDesc;
 
 	// Load (+ compile) shader files
 	loadVertexShader(vsFilename);
@@ -58,6 +80,17 @@ void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+
+	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	matrixBufferDesc2.Usage = D3D11_USAGE_DYNAMIC;
+	matrixBufferDesc2.ByteWidth = sizeof(MatrixBufferType2);
+	matrixBufferDesc2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	matrixBufferDesc2.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	matrixBufferDesc2.MiscFlags = 0;
+	matrixBufferDesc2.StructureByteStride = 0;
+
+	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
+	renderer->CreateBuffer(&matrixBufferDesc2, NULL, &matrixBuffer2);
 
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -90,13 +123,42 @@ void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	heightBufferDesc.MiscFlags = 0;
 	heightBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&heightBufferDesc, NULL, &heightBuffer);
+
+	// Setup the description of the tessellation buffer description.
+	tessellationBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	tessellationBufferDesc.ByteWidth = sizeof(TessellationBufferType);
+	tessellationBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	tessellationBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	tessellationBufferDesc.MiscFlags = 0;
+	tessellationBufferDesc.StructureByteStride = 0;
+	renderer->CreateBuffer(&tessellationBufferDesc, NULL, &tessellationBuffer);
+
+	// Setup camera buffer
+	cameraBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cameraBufferDesc.ByteWidth = sizeof(CameraBufferType);
+	cameraBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cameraBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cameraBufferDesc.MiscFlags = 0;
+	cameraBufferDesc.StructureByteStride = 0;
+	renderer->CreateBuffer(&cameraBufferDesc, NULL, &cameraBuffer);
 }
 
-void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext, const XMMATRIX & worldMatrix, const XMMATRIX & viewMatrix, const XMMATRIX & projectionMatrix, ID3D11ShaderResourceView * texture, ID3D11ShaderResourceView* heightTex, Light* light, XMFLOAT4 waveVariables)
+void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR* dsFilename, WCHAR* psFilename)
 {
-	HRESULT result;
+	// InitShader must be overwritten and it will load both vertex and pixel shaders + setup buffers
+	initShader(vsFilename, psFilename);
+
+	// Load other required shaders.
+	loadHullShader(hsFilename);
+	loadDomainShader(dsFilename);
+}
+
+void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext, const XMMATRIX & worldMatrix, const XMMATRIX & viewMatrix, const XMMATRIX & projectionMatrix, ID3D11ShaderResourceView * texture, ID3D11ShaderResourceView* heightTex, Light* lights[MAX_LIGHTS], float tessFactor, XMFLOAT4 waveVariables, XMFLOAT3 camPos)
+{
+	HRESULT result, result2;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
+	LightBufferType* lightPtr;
 
 	XMMATRIX tworld, tview, tproj;
 
@@ -104,13 +166,48 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	tworld = XMMatrixTranspose(worldMatrix);
 	tview = XMMatrixTranspose(viewMatrix);
 	tproj = XMMatrixTranspose(projectionMatrix);
+	// TO DO: INCLUDE ALL LIGHT VIEW AND ORTHO MATRICES
+	XMMATRIX tLightViewMatrix = XMMatrixTranspose(lights[0]->getViewMatrix());
+	XMMATRIX tLightProjectionMatrix = XMMatrixTranspose(lights[0]->getOrthoMatrix());
+	XMMATRIX tLightViewMatrix2 = XMMatrixTranspose(lights[1]->getViewMatrix());
+	XMMATRIX tLightProjectionMatrix2 = XMMatrixTranspose(lights[1]->getOrthoMatrix());
+
+	// Lock the constant buffer so it can be written to.
+	result2 = deviceContext->Map(matrixBuffer2, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	MatrixBufferType2* dataPtr2 = (MatrixBufferType2*)mappedResource.pData;
+	dataPtr2->world = tworld;// worldMatrix;
+	dataPtr2->lightView[0] = tLightViewMatrix;
+	dataPtr2->lightProjection[0] = tLightProjectionMatrix;
+	dataPtr2->lightView[1] = tLightViewMatrix2;
+	dataPtr2->lightProjection[1] = tLightProjectionMatrix2;
+	deviceContext->Unmap(matrixBuffer2, 0);
+	deviceContext->VSSetConstantBuffers(1, 1, &matrixBuffer2);
+
+	// Send camera position to vertex shader
+	CameraBufferType* camPtr;
+	deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	camPtr = (CameraBufferType*)mappedResource.pData;
+	camPtr->cameraPos = camPos;
+	camPtr->pad = 1.0f;
+	deviceContext->Unmap(cameraBuffer, 0);
+	deviceContext->VSSetConstantBuffers(0, 1, &cameraBuffer);
+
+	// Send tessellation data to hull shader
+	TessellationBufferType* tesPtr;
+	deviceContext->Map(tessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	tesPtr = (TessellationBufferType*)mappedResource.pData;
+	tesPtr->tessellationFactor = tessFactor;
+	tesPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	deviceContext->Unmap(tessellationBuffer, 0);
+	deviceContext->HSSetConstantBuffers(0, 1, &tessellationBuffer);
+
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 	dataPtr->world = tworld;// worldMatrix;
 	dataPtr->view = tview;
 	dataPtr->projection = tproj;
 	deviceContext->Unmap(matrixBuffer, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, &matrixBuffer);
+	deviceContext->DSSetConstantBuffers(0, 1, &matrixBuffer);
 
 	//Additional
 	// Send light data to pixel shader
@@ -120,24 +217,27 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	heightPtr->height = waveVariables.y;
 	heightPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	deviceContext->Unmap(heightBuffer, 0);
-	deviceContext->VSSetConstantBuffers(1, 1, &heightBuffer);
+	deviceContext->DSSetConstantBuffers(1, 1, &heightBuffer);
 
 	//Additional
 	// Send light data to pixel shader
-	LightBufferType* lightPtr;
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
-	lightPtr->ambient = light->getAmbientColour();
-	lightPtr->diffuse = light->getDiffuseColour();
-	lightPtr->direction = light->getDirection();
+	for (int i = 0; i < MAX_LIGHTS; i++)
+	{
+		lightPtr->ambient[i] = lights[i]->getAmbientColour();
+		lightPtr->diffuse[i] = lights[i]->getDiffuseColour();
+		lightPtr->direction[i] = XMFLOAT4(lights[i]->getDirection().x, lights[i]->getDirection().y, lights[i]->getDirection().z, 1.0f);
+	}
+
 	deviceContext->Unmap(lightBuffer, 0);
 	deviceContext->PSSetConstantBuffers(0, 1, &lightBuffer);
+
+	// Set shader texture resource for height map in domain shader.
+	deviceContext->DSSetShaderResources(0, 1, &heightTex);
+	deviceContext->DSSetSamplers(0, 1, &sampleState);
 
 	// Set shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &heightTex);
 	deviceContext->PSSetSamplers(0, 1, &sampleState);
-
-	// Set shader texture resource for height map in vertex shader.
-	deviceContext->VSSetShaderResources(0, 1, &heightTex);
-	deviceContext->VSSetSamplers(0, 1, &sampleState);
 }
