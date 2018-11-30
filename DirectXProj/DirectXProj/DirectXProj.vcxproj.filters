@@ -69,6 +69,9 @@
     <ClCompile Include="DisplacementShader.cpp">
       <Filter>Source Files\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="DisplacementDepthShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DepthShader.h">
@@ -97,6 +100,9 @@
     </ClInclude>
     <ClInclude Include="Shaders.h">
       <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="DisplacementDepthShader.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -137,6 +143,9 @@
       <Filter>Resource Files\Tessellation</Filter>
     </FxCompile>
     <FxCompile Include="displacement_ds.hlsl">
+      <Filter>Resource Files\Displacement</Filter>
+    </FxCompile>
+    <FxCompile Include="displacementDepth_ds.hlsl">
       <Filter>Resource Files\Displacement</Filter>
     </FxCompile>
   </ItemGroup>

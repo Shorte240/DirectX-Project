@@ -35,6 +35,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	tessellationShader = new TessellationShader(renderer->getDevice(), hwnd);
 	tessellationDepthShader = new TessellationDepthShader(renderer->getDevice(), hwnd);
 	displacementShader = new DisplacementShader(renderer->getDevice(), hwnd);
+	displacementDepthShader = new DisplacementDepthShader(renderer->getDevice(), hwnd);
 
 	int shadowmapWidth = 2048;
 	int shadowmapHeight = 2048;
@@ -148,10 +149,10 @@ void App1::depthPass(Light* light, RenderTexture* rTex)
 	tessellationDepthShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
 
 	// Render earth tessellated sphere
-	/*worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
 	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	tessellationDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture("height"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
-	tessellationDepthShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());*/
+	displacementDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture("height"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
+	displacementDepthShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
 
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();

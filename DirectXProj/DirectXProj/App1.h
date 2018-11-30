@@ -32,6 +32,7 @@ private:
 	TessellationShader* tessellationShader;
 	TessellationDepthShader* tessellationDepthShader;
 	DisplacementShader* displacementShader;
+	DisplacementDepthShader* displacementDepthShader;
 
 	PlaneMesh* mesh;
 	CubeMesh* cubeMesh;

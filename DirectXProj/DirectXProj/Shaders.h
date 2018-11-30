@@ -8,5 +8,6 @@
 #include "TessellationShader.h"
 #include "TessellationDepthShader.h"
 #include "DisplacementShader.h"
+#include "DisplacementDepthShader.h"
 
 
