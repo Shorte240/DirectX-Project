@@ -45,6 +45,7 @@ OutputType main(InputType input)
 
 	// Calc input pos against reflectProjWorld
 	output.reflectionPos = mul(input.position, reflectProjWorld);
+    //output.reflectionPos.w = 1.0f;
 
 	return output;
 }

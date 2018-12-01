@@ -20,13 +20,15 @@ float4 main(InputType input) : SV_TARGET
 
 	// Sample the texture pixel at this location
 	texColour = shaderTexture.Sample(SampleType, input.tex);
+    //texColour.w = 1.0f;
 
 	// Calc projected reflection tex coord
 	reflectTexCoord.x = ((input.reflectionPos.x / input.reflectionPos.w) / 2.0f) + 0.5f;
 	reflectTexCoord.y = ((-input.reflectionPos.y / input.reflectionPos.w) / 2.0f) + 0.5f;
 
 	// Sample texture pixel from reflection texture
-	reflectionColour = reflectionTexture.Sample(SampleType, reflectTexCoord);
+    reflectionColour = reflectionTexture.Sample(SampleType, reflectTexCoord);
+    //reflectionColour.w = 1.0f;
 
 	// Do linear interpolation between two textures for blend effect
 	colour = lerp(texColour, reflectionColour, 0.15f);
