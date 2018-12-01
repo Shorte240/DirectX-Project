@@ -40,6 +40,9 @@
     <Filter Include="Resource Files\Displacement">
       <UniqueIdentifier>{c990b8d0-34c6-4aab-af8c-2037b4bdcdb4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Blur">
+      <UniqueIdentifier>{0c4d3d93-f442-470f-b332-32a8e4896824}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App1.cpp">
@@ -72,6 +75,12 @@
     <ClCompile Include="DisplacementDepthShader.cpp">
       <Filter>Source Files\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="VerticalBlurShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="HorizontalBlurShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DepthShader.h">
@@ -102,6 +111,12 @@
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="DisplacementDepthShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="VerticalBlurShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="HorizontalBlurShader.h">
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
@@ -147,6 +162,18 @@
     </FxCompile>
     <FxCompile Include="displacementDepth_ds.hlsl">
       <Filter>Resource Files\Displacement</Filter>
+    </FxCompile>
+    <FxCompile Include="verticalBlur_ps.hlsl">
+      <Filter>Resource Files\Blur</Filter>
+    </FxCompile>
+    <FxCompile Include="verticalBlur_vs.hlsl">
+      <Filter>Resource Files\Blur</Filter>
+    </FxCompile>
+    <FxCompile Include="horizontalBlur_vs.hlsl">
+      <Filter>Resource Files\Blur</Filter>
+    </FxCompile>
+    <FxCompile Include="horizontalBlur_ps.hlsl">
+      <Filter>Resource Files\Blur</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

@@ -9,5 +9,7 @@
 #include "TessellationDepthShader.h"
 #include "DisplacementShader.h"
 #include "DisplacementDepthShader.h"
+#include "HorizontalBlurShader.h"
+#include "VerticalBlurShader.h"
 
 

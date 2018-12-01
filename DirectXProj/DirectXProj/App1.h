@@ -21,7 +21,12 @@ public:
 
 protected:
 	bool render();
+	void firstPass();
+	void downSample();
+	void verticalBlur();
+	void horizontalBlur();
 	void depthPass(Light* light, RenderTexture* rTex);
+	void upSample();
 	void finalPass();
 	void gui();
 
@@ -33,10 +38,13 @@ private:
 	TessellationDepthShader* tessellationDepthShader;
 	DisplacementShader* displacementShader;
 	DisplacementDepthShader* displacementDepthShader;
+	HorizontalBlurShader* horizontalBlurShader;
+	VerticalBlurShader* verticalBlurShader;
 
 	PlaneMesh* mesh;
 	OrthoMesh* leftOrthoMesh;
 	OrthoMesh* rightOrthoMesh;
+	OrthoMesh* screenOrthoMesh;
 	TessellatedSphereMesh* waterTessellatedSphereMesh;
 	TessellatedSphereMesh* earthTessellatedSphereMesh;
 	TessellatedSphereMesh* reflectiveTessellatedSphereMesh;
@@ -45,6 +53,12 @@ private:
 
 	RenderTexture* shadowMap;
 	RenderTexture* shadowMap2;
+
+	RenderTexture* renderTexture;
+	RenderTexture* horizontalBlurTexture;
+	RenderTexture* verticalBlurTexture;
+	RenderTexture* downSampleTexture;
+	RenderTexture* upSampleTexture;
 
 	// Variables
 	float tessellationFactor;
