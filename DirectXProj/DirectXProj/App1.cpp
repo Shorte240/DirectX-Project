@@ -60,6 +60,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	downSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth / 2, screenHeight / 2, SCREEN_NEAR, SCREEN_DEPTH);
 	upSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	depthOfFieldTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
+	cameraDepthTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 
 	lights[0] = new Light;
 	lights[0]->setAmbientColour(0.3f, 0.3f, 0.3f, 1.0f);
@@ -84,6 +85,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	wavVar.height = 0.0f;
 	wavVar.frequency = 0.0f;
 	wavVar.speed = 1.0f;
+
+	depthOfFieldDistance = 10.0f;
+	depthOfFieldRange = 5.0f;
 }
 
 
@@ -122,6 +126,8 @@ bool App1::render()
 	// Perform depth pass
 	depthPass(lights[0], shadowMap);
 	depthPass(lights[1], shadowMap2);
+	// Perform depth pass on camera
+	cameraDepthPass();
 	// Render scene
 	firstPass();
 	// Down sample
@@ -201,7 +207,7 @@ void App1::depthOfFieldPass()
 	// Render for Vertical Blur
 	renderer->setZBuffer(false);
 	screenOrthoMesh->sendData(renderer->getDeviceContext());
-	depthOfFieldShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, normalSceneTexture->getShaderResourceView(), verticalBlurTexture->getShaderResourceView(), shadowMap2->getShaderResourceView(), 10.0f, 5.0f, SCREEN_NEAR, SCREEN_DEPTH);
+	depthOfFieldShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, normalSceneTexture->getShaderResourceView(), verticalBlurTexture->getShaderResourceView(), cameraDepthTexture->getShaderResourceView(), depthOfFieldDistance, depthOfFieldRange, SCREEN_NEAR, SCREEN_DEPTH);
 	depthOfFieldShader->render(renderer->getDeviceContext(), screenOrthoMesh->getIndexCount());
 	renderer->setZBuffer(true);
 
@@ -300,6 +306,51 @@ void App1::horizontalBlur()
 
 	// Reset the render target back to the original back buffer and not the render to texture anymore.
 	renderer->setBackBufferRenderTarget();
+}
+
+void App1::cameraDepthPass()
+{
+	// DO SEPARATE DEPTH PASSES AND SAVE TO SEPARATE TEXTURES
+
+	// Set the render target to be the render to texture.
+	cameraDepthTexture->setRenderTarget(renderer->getDeviceContext());
+	cameraDepthTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 1.0f, 1.0f, 1.0f);
+
+	// get the world, view, and projection matrices from the camera and d3d objects.
+	XMMATRIX worldMatrix = renderer->getWorldMatrix();
+	XMMATRIX viewMatrix = camera->getViewMatrix();
+	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
+
+	worldMatrix = XMMatrixTranslation(-50.f, 0.f, -10.f);
+	// Render floor
+	mesh->sendData(renderer->getDeviceContext());
+	depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix);
+	depthShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
+
+	// Get the elapsed time
+	wavVar.elapsedTime += timer->getTime();
+
+	// Render water tessellated sphere
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
+	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	tessellationDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
+	tessellationDepthShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
+
+	// Render earth tessellated sphere
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
+	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	displacementDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), tessellationFactor, displacementHeight, camera->getPosition());
+	displacementDepthShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
+
+	// Render reflective tessellated sphere
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
+	reflectiveTessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	displacementDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), tessellationFactor, displacementHeight, camera->getPosition());
+	displacementDepthShader->render(renderer->getDeviceContext(), reflectiveTessellatedSphereMesh->getIndexCount());
+
+	// Set back buffer as render target and reset view port.
+	renderer->setBackBufferRenderTarget();
+	renderer->resetViewport();
 }
 
 void App1::verticalBlur()
@@ -401,6 +452,12 @@ void App1::gui()
 	if (ImGui::CollapsingHeader("Displacement", 0))
 	{
 		ImGui::SliderFloat("Displacement Height", &displacementHeight, 0.0f, 2.0f);
+	}
+
+	if (ImGui::CollapsingHeader("Depth Of Field", 0))
+	{
+		ImGui::SliderFloat("Distance", &depthOfFieldDistance, 0.0f, 20.0f);
+		ImGui::SliderFloat("Range", &depthOfFieldRange, 0.0f, 20.0f);
 	}
 
 	// Render UI

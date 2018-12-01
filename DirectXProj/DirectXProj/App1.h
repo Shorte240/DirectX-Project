@@ -25,6 +25,7 @@ protected:
 	void downSample();
 	void verticalBlur();
 	void horizontalBlur();
+	void cameraDepthPass();
 	void depthPass(Light* light, RenderTexture* rTex);
 	void depthOfFieldPass();
 	void upSample();
@@ -62,10 +63,13 @@ private:
 	RenderTexture* downSampleTexture;
 	RenderTexture* upSampleTexture;
 	RenderTexture* depthOfFieldTexture;
+	RenderTexture* cameraDepthTexture;
 
 	// Variables
 	float tessellationFactor;
 	float displacementHeight;
+	float depthOfFieldDistance;
+	float depthOfFieldRange;
 
 	struct WaveVariables
 	{
