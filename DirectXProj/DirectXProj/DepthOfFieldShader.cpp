@@ -1,13 +1,13 @@
-// Vertical blur shader
-#include "verticalblurshader.h"
+// Depth of field shader
 
-VerticalBlurShader::VerticalBlurShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
+#include "DepthOfFieldShader.h"
+
+DepthOfFieldShader::DepthOfFieldShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
-	initShader(L"verticalBlur_vs.cso", L"verticalBlur_ps.cso");
+	initShader(L"depthOfField_vs.cso", L"depthOfField_ps.cso");
 }
 
-
-VerticalBlurShader::~VerticalBlurShader()
+DepthOfFieldShader::~DepthOfFieldShader()
 {
 	if (sampleState)
 	{
@@ -24,23 +24,22 @@ VerticalBlurShader::~VerticalBlurShader()
 		layout->Release();
 		layout = 0;
 	}
-	if (screenSizeBuffer)
+	if (depthBuffer)
 	{
-		screenSizeBuffer->Release();
-		screenSizeBuffer = 0;
+		depthBuffer->Release();
+		depthBuffer = 0;
 	}
 
 	//Release base shader components
 	BaseShader::~BaseShader();
 }
 
-
-void VerticalBlurShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
+void DepthOfFieldShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 {
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
-	D3D11_BUFFER_DESC screenSizeBufferDesc;
-
+	D3D11_BUFFER_DESC depthBufferDesc;
+	
 	// Load (+ compile) shader files
 	loadVertexShader(vsFilename);
 	loadPixelShader(psFilename);
@@ -71,18 +70,16 @@ void VerticalBlurShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	renderer->CreateSamplerState(&samplerDesc, &sampleState);
 
 	// Setup the description of the screen size.
-	screenSizeBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	screenSizeBufferDesc.ByteWidth = sizeof(ScreenSizeBufferType);
-	screenSizeBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	screenSizeBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	screenSizeBufferDesc.MiscFlags = 0;
-	screenSizeBufferDesc.StructureByteStride = 0;
-	renderer->CreateBuffer(&screenSizeBufferDesc, NULL, &screenSizeBuffer);
-
+	depthBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	depthBufferDesc.ByteWidth = sizeof(DepthBufferType);
+	depthBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	depthBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	depthBufferDesc.MiscFlags = 0;
+	depthBufferDesc.StructureByteStride = 0;
+	renderer->CreateBuffer(&depthBufferDesc, NULL, &depthBuffer);
 }
 
-
-void VerticalBlurShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* texture, float height)
+void DepthOfFieldShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* normalSceneTex, ID3D11ShaderResourceView* blurSceneTex, ID3D11ShaderResourceView* depthSceneTex, float dist, float range, float nearV, float farV)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
@@ -103,19 +100,21 @@ void VerticalBlurShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 
 	//Additional
 	// Send light data to pixel shader
-	ScreenSizeBufferType* widthPtr;
-	deviceContext->Map(screenSizeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	widthPtr = (ScreenSizeBufferType*)mappedResource.pData;
-	widthPtr->screenHeight = height;
-	widthPtr->padding = XMFLOAT3(1.0f, 1.f, 1.f);
-	deviceContext->Unmap(screenSizeBuffer, 0);
-	deviceContext->PSSetConstantBuffers(0, 1, &screenSizeBuffer);
+	DepthBufferType* depthPtr;
+	deviceContext->Map(depthBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	depthPtr = (DepthBufferType*)mappedResource.pData;
+	depthPtr->distance = dist;
+	depthPtr->range = range;
+	depthPtr->nearVal = nearV;
+	float farClip = farV;
+	farClip = farClip / (farClip - nearV);
+	depthPtr->farVal = farClip;
+	deviceContext->Unmap(depthBuffer, 0);
+	deviceContext->PSSetConstantBuffers(0, 1, &depthBuffer);
 
 	// Set shader texture resource in the pixel shader.
-	deviceContext->PSSetShaderResources(0, 1, &texture);
+	deviceContext->PSSetShaderResources(0, 1, &normalSceneTex);
+	deviceContext->PSSetShaderResources(1, 1, &blurSceneTex);
+	deviceContext->PSSetShaderResources(2, 1, &depthSceneTex);
 	deviceContext->PSSetSamplers(0, 1, &sampleState);
 }
-
-
-
-

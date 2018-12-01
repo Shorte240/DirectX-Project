@@ -11,5 +11,6 @@
 #include "DisplacementDepthShader.h"
 #include "HorizontalBlurShader.h"
 #include "VerticalBlurShader.h"
+#include "DepthOfFieldShader.h"
 
 

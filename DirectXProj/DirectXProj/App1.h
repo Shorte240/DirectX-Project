@@ -26,6 +26,7 @@ protected:
 	void verticalBlur();
 	void horizontalBlur();
 	void depthPass(Light* light, RenderTexture* rTex);
+	void depthOfFieldPass();
 	void upSample();
 	void finalPass();
 	void gui();
@@ -40,6 +41,7 @@ private:
 	DisplacementDepthShader* displacementDepthShader;
 	HorizontalBlurShader* horizontalBlurShader;
 	VerticalBlurShader* verticalBlurShader;
+	DepthOfFieldShader* depthOfFieldShader;
 
 	PlaneMesh* mesh;
 	OrthoMesh* leftOrthoMesh;
@@ -54,11 +56,12 @@ private:
 	RenderTexture* shadowMap;
 	RenderTexture* shadowMap2;
 
-	RenderTexture* renderTexture;
+	RenderTexture* normalSceneTexture;
 	RenderTexture* horizontalBlurTexture;
 	RenderTexture* verticalBlurTexture;
 	RenderTexture* downSampleTexture;
 	RenderTexture* upSampleTexture;
+	RenderTexture* depthOfFieldTexture;
 
 	// Variables
 	float tessellationFactor;

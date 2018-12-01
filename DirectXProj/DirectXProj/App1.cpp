@@ -39,6 +39,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	displacementDepthShader = new DisplacementDepthShader(renderer->getDevice(), hwnd);
 	horizontalBlurShader = new HorizontalBlurShader(renderer->getDevice(), hwnd);
 	verticalBlurShader = new VerticalBlurShader(renderer->getDevice(), hwnd);
+	depthOfFieldShader = new DepthOfFieldShader(renderer->getDevice(), hwnd);
 
 	// Set shadow map width/height
 	int shadowmapWidth = 2048;
@@ -53,11 +54,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// This is your shadow map
 	shadowMap = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
 	shadowMap2 = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
-	renderTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
+	normalSceneTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	horizontalBlurTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	verticalBlurTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	downSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth / 2, screenHeight / 2, SCREEN_NEAR, SCREEN_DEPTH);
 	upSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
+	depthOfFieldTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 
 	lights[0] = new Light;
 	lights[0]->setAmbientColour(0.3f, 0.3f, 0.3f, 1.0f);
@@ -128,6 +130,8 @@ bool App1::render()
 	horizontalBlur();
 	// Apply vertical blur to the horizontal blur stage
 	verticalBlur();
+	// Apply depth of field shader
+	depthOfFieldPass();
 	// Up sample
 	upSample();
 	// Render scene
@@ -182,11 +186,34 @@ void App1::depthPass(Light* light, RenderTexture* rTex)
 	renderer->resetViewport();
 }
 
+void App1::depthOfFieldPass()
+{
+	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
+
+	depthOfFieldTexture->setRenderTarget(renderer->getDeviceContext());
+	depthOfFieldTexture->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 1.0f, 1.0f, 1.0f);
+
+	worldMatrix = renderer->getWorldMatrix();
+	baseViewMatrix = camera->getOrthoViewMatrix();
+	// Get the ortho matrix from the render to texture since texture has different dimensions being that it is smaller.
+	orthoMatrix = verticalBlurTexture->getOrthoMatrix();
+
+	// Render for Vertical Blur
+	renderer->setZBuffer(false);
+	screenOrthoMesh->sendData(renderer->getDeviceContext());
+	depthOfFieldShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, normalSceneTexture->getShaderResourceView(), verticalBlurTexture->getShaderResourceView(), shadowMap2->getShaderResourceView(), 10.0f, 5.0f, SCREEN_NEAR, SCREEN_DEPTH);
+	depthOfFieldShader->render(renderer->getDeviceContext(), screenOrthoMesh->getIndexCount());
+	renderer->setZBuffer(true);
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	renderer->setBackBufferRenderTarget();
+}
+
 void App1::firstPass()
 {
 	// Set the render target to be the render to texture and clear it
-	renderTexture->setRenderTarget(renderer->getDeviceContext());
-	renderTexture->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 0.0f, 1.0f, 1.0f);
+	normalSceneTexture->setRenderTarget(renderer->getDeviceContext());
+	normalSceneTexture->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 0.0f, 1.0f, 1.0f);
 
 	// Clear the scene. (default blue colour)
 	//renderer->beginScene(0.39f, 0.58f, 0.92f, 1.0f);
@@ -244,7 +271,7 @@ void App1::downSample()
 	// Render for Horizontal Blur
 	renderer->setZBuffer(false);
 	screenOrthoMesh->sendData(renderer->getDeviceContext());
-	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, renderTexture->getShaderResourceView());
+	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, normalSceneTexture->getShaderResourceView());
 	textureShader->render(renderer->getDeviceContext(), screenOrthoMesh->getIndexCount());
 	renderer->setZBuffer(true);
 
@@ -299,8 +326,6 @@ void App1::verticalBlur()
 	renderer->setBackBufferRenderTarget();
 }
 
-
-
 void App1::upSample()
 {
 	// Set the render target to be the render to texture and clear it
@@ -316,7 +341,7 @@ void App1::upSample()
 	// Render for Horizontal Blur
 	renderer->setZBuffer(false);
 	screenOrthoMesh->sendData(renderer->getDeviceContext());
-	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, verticalBlurTexture->getShaderResourceView());
+	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, depthOfFieldTexture->getShaderResourceView());
 	textureShader->render(renderer->getDeviceContext(), screenOrthoMesh->getIndexCount());
 	renderer->setZBuffer(true);
 

@@ -43,6 +43,9 @@
     <Filter Include="Resource Files\Blur">
       <UniqueIdentifier>{0c4d3d93-f442-470f-b332-32a8e4896824}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Depth of Field">
+      <UniqueIdentifier>{4d709dba-7dbd-42ba-9548-011b07208ba3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App1.cpp">
@@ -81,6 +84,9 @@
     <ClCompile Include="HorizontalBlurShader.cpp">
       <Filter>Source Files\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="DepthOfFieldShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DepthShader.h">
@@ -117,6 +123,9 @@
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="HorizontalBlurShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthOfFieldShader.h">
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
@@ -174,6 +183,12 @@
     </FxCompile>
     <FxCompile Include="horizontalBlur_ps.hlsl">
       <Filter>Resource Files\Blur</Filter>
+    </FxCompile>
+    <FxCompile Include="depthOfField_ps.hlsl">
+      <Filter>Resource Files\Depth of Field</Filter>
+    </FxCompile>
+    <FxCompile Include="depthOfField_vs.hlsl">
+      <Filter>Resource Files\Depth of Field</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>
