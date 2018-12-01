@@ -6,6 +6,7 @@
 #include "DXF.h"	// include dxframework
 #include "TessellatedSphereMesh.h"
 #include "Shaders.h"
+#include "D3D.h"
 
 #define MAX_LIGHTS 2
 
@@ -29,6 +30,8 @@ protected:
 	void depthPass(Light* light, RenderTexture* rTex);
 	void depthOfFieldPass();
 	void upSample();
+	void renderReflection(float height);
+	void reflectionPass();
 	void finalPass();
 	void gui();
 
@@ -43,6 +46,7 @@ private:
 	HorizontalBlurShader* horizontalBlurShader;
 	VerticalBlurShader* verticalBlurShader;
 	DepthOfFieldShader* depthOfFieldShader;
+	ReflectionShader* reflectionShader;
 
 	PlaneMesh* mesh;
 	OrthoMesh* leftOrthoMesh;
@@ -64,12 +68,14 @@ private:
 	RenderTexture* upSampleTexture;
 	RenderTexture* depthOfFieldTexture;
 	RenderTexture* cameraDepthTexture;
+	RenderTexture* reflectionTexture;
 
 	// Variables
 	float tessellationFactor;
 	float displacementHeight;
 	float depthOfFieldDistance;
 	float depthOfFieldRange;
+	XMMATRIX reflectionViewMatrix;
 
 	struct WaveVariables
 	{

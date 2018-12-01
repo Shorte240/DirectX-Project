@@ -46,6 +46,9 @@
     <Filter Include="Resource Files\Depth of Field">
       <UniqueIdentifier>{4d709dba-7dbd-42ba-9548-011b07208ba3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Reflection">
+      <UniqueIdentifier>{e71e0d0a-5c5f-459b-9294-5f67190d18e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App1.cpp">
@@ -87,6 +90,9 @@
     <ClCompile Include="DepthOfFieldShader.cpp">
       <Filter>Source Files\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="ReflectionShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DepthShader.h">
@@ -126,6 +132,9 @@
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="DepthOfFieldShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ReflectionShader.h">
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
@@ -189,6 +198,12 @@
     </FxCompile>
     <FxCompile Include="depthOfField_vs.hlsl">
       <Filter>Resource Files\Depth of Field</Filter>
+    </FxCompile>
+    <FxCompile Include="reflection_ps.hlsl">
+      <Filter>Resource Files\Reflection</Filter>
+    </FxCompile>
+    <FxCompile Include="reflection_vs.hlsl">
+      <Filter>Resource Files\Reflection</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

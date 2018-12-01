@@ -41,7 +41,7 @@ public:
 	void update();				///< Update camera, recalculates view matrix based on rotation
 	XMMATRIX getViewMatrix();	///< Get current view matrix of camera
 	XMMATRIX getOrthoViewMatrix();	///< Get current orthographic view matrix for camera
-
+	
 	void setFrameTime(float);
 
 	void moveForward();			///< default function for moving forward
