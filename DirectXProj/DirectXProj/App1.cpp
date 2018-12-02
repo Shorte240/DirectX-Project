@@ -340,7 +340,7 @@ void App1::firstPass()
 		textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
 	shadowShader->render(renderer->getDeviceContext(), mesh->getIndexCount());*/
 	reflectionShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
-		textureMgr->getTexture("water"), reflectionTexture->getShaderResourceView(), reflectionViewMatrix);
+		reflectionTexture->getShaderResourceView(), textureMgr->getTexture("water"), reflectionViewMatrix);
 	reflectionShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
 
 	// Get the elapsed time
