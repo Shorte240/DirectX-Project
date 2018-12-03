@@ -33,9 +33,12 @@ float4 main(InputType input) : SV_TARGET
 	// Invert the depth texel
 	fDepth = 1 - fDepth;
 
+	float dist = depthSceneTexture.Sample(SampleType, float2(0.5f,0.5f)).r;
+	dist = 1 - dist;
+
 	// Calculate distance
 	float fSceneZ = (-nearVal * farVal) / (fDepth - farVal);
-	float blurFactor = saturate(abs(fSceneZ - distance) / range);
+	float blurFactor = saturate(abs(fSceneZ - dist) / range);
 
 	// Return lerp
 	return lerp(normalScene, blurScene, blurFactor);

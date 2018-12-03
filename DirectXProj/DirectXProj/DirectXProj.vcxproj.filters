@@ -205,5 +205,8 @@
     <FxCompile Include="reflection_vs.hlsl">
       <Filter>Resource Files\Reflection</Filter>
     </FxCompile>
+    <FxCompile Include="tessellation_gs.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

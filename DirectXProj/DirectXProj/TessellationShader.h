@@ -55,7 +55,7 @@ public:
 
 private:
 	void initShader(WCHAR* vsFilename, WCHAR* psFilename);
-	void initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR* dsFilename, WCHAR* psFilename);
+	void initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR* dsFilename, WCHAR* gsFilename, WCHAR* psFilename);
 
 private:
 	ID3D11Buffer * matrixBuffer;

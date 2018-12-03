@@ -5,7 +5,7 @@
 TessellationShader::TessellationShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
 	// Quad tessellation
-	initShader(L"tessellation_vs.cso", L"tessellation_hs.cso", L"tessellation_ds.cso", L"tessellation_ps.cso");
+	initShader(L"tessellation_vs.cso", L"tessellation_hs.cso", L"tessellation_ds.cso", L"tessellation_gs.cso", L"tessellation_ps.cso");
 }
 
 
@@ -135,7 +135,7 @@ void TessellationShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	renderer->CreateBuffer(&lightBufferDesc, NULL, &lightBuffer);
 }
 
-void TessellationShader::initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR* dsFilename, WCHAR* psFilename)
+void TessellationShader::initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR* dsFilename, WCHAR* gsFilename, WCHAR* psFilename)
 {
 	// InitShader must be overwritten and it will load both vertex and pixel shaders + setup buffers
 	initShader(vsFilename, psFilename);
@@ -143,6 +143,7 @@ void TessellationShader::initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR*
 	// Load other required shaders.
 	loadHullShader(hsFilename);
 	loadDomainShader(dsFilename);
+	loadGeometryShader(gsFilename);
 }
 
 
@@ -211,6 +212,14 @@ void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	camPtr->pad = 1.0f;
 	deviceContext->Unmap(cameraBuffer, 0);
 	deviceContext->VSSetConstantBuffers(0, 1, &cameraBuffer);
+
+	deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	dataPtr = (MatrixBufferType*)mappedResource.pData;
+	dataPtr->world = tworld;// worldMatrix;
+	dataPtr->view = tview;
+	dataPtr->projection = tproj;
+	deviceContext->Unmap(matrixBuffer, 0);
+	deviceContext->GSSetConstantBuffers(0, 1, &matrixBuffer);
 
 	//Additional
 	// Send light data to pixel shader

@@ -89,7 +89,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	wavVar.speed = 1.0f;
 
 	depthOfFieldDistance = 10.0f;
-	depthOfFieldRange = 5.0f;
+	depthOfFieldRange = 2.0f;
 }
 
 
@@ -340,7 +340,7 @@ void App1::firstPass()
 		textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
 	shadowShader->render(renderer->getDeviceContext(), mesh->getIndexCount());*/
 	reflectionShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
-		reflectionTexture->getShaderResourceView(), textureMgr->getTexture("water"), reflectionViewMatrix);
+		textureMgr->getTexture("brick"), reflectionTexture->getShaderResourceView(), reflectionViewMatrix);
 	reflectionShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
 
 	// Get the elapsed time
@@ -531,8 +531,6 @@ void App1::gui()
 		ImGui::SliderFloat("Wave Speed", &wavVar.speed, 0.0f, 5.0f);
 	}
 	
-	ImGui::Spacing();
-
 	if (ImGui::CollapsingHeader("Displacement", 0))
 	{
 		ImGui::SliderFloat("Displacement Height", &displacementHeight, 0.0f, 2.0f);
