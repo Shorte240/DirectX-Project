@@ -88,8 +88,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	wavVar.frequency = 0.0f;
 	wavVar.speed = 1.0f;
 
-	depthOfFieldDistance = 10.0f;
-	depthOfFieldRange = 2.0f;
+	depthOfFieldDistance = 0.0f;
+	depthOfFieldRange = 5.0f;
 }
 
 
@@ -538,8 +538,8 @@ void App1::gui()
 
 	if (ImGui::CollapsingHeader("Depth Of Field", 0))
 	{
-		ImGui::SliderFloat("Distance", &depthOfFieldDistance, 0.0f, 20.0f);
-		ImGui::SliderFloat("Range", &depthOfFieldRange, 0.0f, 20.0f);
+		ImGui::SliderFloat("Distance", &depthOfFieldDistance, 0.0f, 50.0f);
+		ImGui::SliderFloat("Range", &depthOfFieldRange, 0.0f, 50.0f);
 	}
 
 	// Render UI
