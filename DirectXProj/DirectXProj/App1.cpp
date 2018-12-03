@@ -497,7 +497,7 @@ void App1::finalPass()
 	XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();	// Default camera position for orthographic rendering
 
 	screenOrthoMesh->sendData(renderer->getDeviceContext());
-	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, normalSceneTexture->getShaderResourceView());
+	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, upSampleTexture->getShaderResourceView());
 	textureShader->render(renderer->getDeviceContext(), screenOrthoMesh->getIndexCount());
 
 	leftOrthoMesh->sendData(renderer->getDeviceContext());
