@@ -49,8 +49,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// 4096 breaks my graphics debugger on win7???
 
 	// Set scene width/height for lights
-	int sceneWidth = 100;
-	int sceneHeight = 100;
+	float sceneWidth = 100;
+	float sceneHeight = 100;
 
 	// This is your shadow map
 	shadowMap = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
@@ -58,7 +58,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	normalSceneTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	horizontalBlurTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	verticalBlurTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
-	downSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth / 2.0f, screenHeight / 2.0f, SCREEN_NEAR, SCREEN_DEPTH);
+	downSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth / 2, screenHeight / 2, SCREEN_NEAR, SCREEN_DEPTH);
 	upSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	depthOfFieldTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	cameraDepthTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
@@ -134,6 +134,8 @@ bool App1::render()
 	reflectionPass();
 	// Render scene to render texture
 	firstPass();
+	// Disable wireframe
+	renderer->setWireframeMode(false);
 	// Down sample
 	downSample();
 	// Apply horizontal blur stage
@@ -144,6 +146,7 @@ bool App1::render()
 	depthOfFieldPass();
 	// Up sample
 	upSample();
+	
 	// Render the whole scene
 	finalPass();
 
@@ -152,8 +155,6 @@ bool App1::render()
 
 void App1::depthPass(Light* light, RenderTexture* rTex)
 {
-	// DO SEPARATE DEPTH PASSES AND SAVE TO SEPARATE TEXTURES
-
 	// Set the render target to be the render to texture.
 	rTex->setRenderTarget(renderer->getDeviceContext());
 	rTex->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 1.0f, 1.0f, 1.0f);
@@ -221,7 +222,7 @@ void App1::cameraDepthPass()
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	tessellationDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
 	tessellationDepthShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
-
+	
 	// Render earth tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
 	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
@@ -336,12 +337,12 @@ void App1::firstPass()
 	worldMatrix = XMMatrixTranslation(-50.f, 0.f, -10.f);
 	// Render floor
 	mesh->sendData(renderer->getDeviceContext());
-	/*shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
+	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
 		textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
-	shadowShader->render(renderer->getDeviceContext(), mesh->getIndexCount());*/
-	reflectionShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
-		textureMgr->getTexture("brick"), reflectionTexture->getShaderResourceView(), reflectionViewMatrix);
-	reflectionShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
+	shadowShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
+	/*reflectionShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
+		reflectionTexture->getShaderResourceView(), textureMgr->getTexture("brick"), reflectionViewMatrix);
+	reflectionShader->render(renderer->getDeviceContext(), mesh->getIndexCount());*/
 
 	// Get the elapsed time
 	wavVar.elapsedTime += timer->getTime();
@@ -492,21 +493,26 @@ void App1::finalPass()
 	// RENDER THE RENDER TEXTURE SCENE
 	// Requires 2D rendering and an ortho mesh.
 	renderer->setZBuffer(false);
+
 	XMMATRIX worldMatrix = renderer->getWorldMatrix();
 	XMMATRIX orthoMatrix = renderer->getOrthoMatrix();  // ortho matrix for 2D rendering
 	XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();	// Default camera position for orthographic rendering
 
+	// Render the scene to the orthomesh covering the screen
 	screenOrthoMesh->sendData(renderer->getDeviceContext());
 	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, upSampleTexture->getShaderResourceView());
 	textureShader->render(renderer->getDeviceContext(), screenOrthoMesh->getIndexCount());
 
+	// Render top left orthomesh
 	leftOrthoMesh->sendData(renderer->getDeviceContext());
 	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowMap->getShaderResourceView());
 	textureShader->render(renderer->getDeviceContext(), leftOrthoMesh->getIndexCount());
 
+	// Render top right orthomesh
 	rightOrthoMesh->sendData(renderer->getDeviceContext());
 	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowMap2->getShaderResourceView());
 	textureShader->render(renderer->getDeviceContext(), rightOrthoMesh->getIndexCount());
+
 	renderer->setZBuffer(true);
 
 	gui();

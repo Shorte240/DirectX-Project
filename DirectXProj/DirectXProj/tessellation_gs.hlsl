@@ -30,7 +30,7 @@ struct OutputType
 // PointStream, LineStream, TriangleStream
 
 [maxvertexcount(4)]
-void main(triangle InputType input[3], inout TriangleStream<OutputType> triStream)
+void main(triangle InputType input[3], inout LineStream<OutputType> triStream)
 {
 	OutputType output;
 
