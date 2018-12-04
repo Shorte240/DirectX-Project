@@ -88,8 +88,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	wavVar.frequency = 0.0f;
 	wavVar.speed = 1.0f;
 
-	depthOfFieldDistance = 0.0f;
-	depthOfFieldRange = 5.0f;
+	depthOfFieldRange = 1.0f;
 }
 
 
@@ -454,7 +453,7 @@ void App1::depthOfFieldPass()
 	// Render for Vertical Blur
 	renderer->setZBuffer(false);
 	screenOrthoMesh->sendData(renderer->getDeviceContext());
-	depthOfFieldShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, normalSceneTexture->getShaderResourceView(), verticalBlurTexture->getShaderResourceView(), cameraDepthTexture->getShaderResourceView(), depthOfFieldDistance, depthOfFieldRange, SCREEN_NEAR, SCREEN_DEPTH);
+	depthOfFieldShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, normalSceneTexture->getShaderResourceView(), verticalBlurTexture->getShaderResourceView(), cameraDepthTexture->getShaderResourceView(), depthOfFieldRange, SCREEN_NEAR, SCREEN_DEPTH);
 	depthOfFieldShader->render(renderer->getDeviceContext(), screenOrthoMesh->getIndexCount());
 	renderer->setZBuffer(true);
 
@@ -544,8 +543,7 @@ void App1::gui()
 
 	if (ImGui::CollapsingHeader("Depth Of Field", 0))
 	{
-		ImGui::SliderFloat("Distance", &depthOfFieldDistance, 0.0f, 50.0f);
-		ImGui::SliderFloat("Range", &depthOfFieldRange, 0.0f, 50.0f);
+		ImGui::SliderFloat("Range", &depthOfFieldRange, 0.0f, 2.0f);
 	}
 
 	// Render UI

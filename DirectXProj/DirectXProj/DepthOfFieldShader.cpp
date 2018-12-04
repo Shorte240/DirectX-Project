@@ -79,7 +79,7 @@ void DepthOfFieldShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	renderer->CreateBuffer(&depthBufferDesc, NULL, &depthBuffer);
 }
 
-void DepthOfFieldShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* normalSceneTex, ID3D11ShaderResourceView* blurSceneTex, ID3D11ShaderResourceView* depthSceneTex, float dist, float range, float nearV, float farV)
+void DepthOfFieldShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* normalSceneTex, ID3D11ShaderResourceView* blurSceneTex, ID3D11ShaderResourceView* depthSceneTex, float range, float nearV, float farV)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
@@ -103,12 +103,10 @@ void DepthOfFieldShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	DepthBufferType* depthPtr;
 	deviceContext->Map(depthBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	depthPtr = (DepthBufferType*)mappedResource.pData;
-	depthPtr->distance = dist;
 	depthPtr->range = range;
 	depthPtr->nearVal = nearV;
-	float farClip = farV;
-	farClip = farClip / (farClip - nearV);
-	depthPtr->farVal = farClip;
+	depthPtr->farVal = farV;
+	depthPtr->padding = 1.0f;
 	deviceContext->Unmap(depthBuffer, 0);
 	deviceContext->PSSetConstantBuffers(0, 1, &depthBuffer);
 

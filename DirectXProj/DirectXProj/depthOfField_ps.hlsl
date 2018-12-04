@@ -7,10 +7,10 @@ SamplerState SampleType : register(s0);
 
 cbuffer DepthBuffer : register(b0)
 {
-	float distance;
 	float range;
 	float nearVal;
 	float farVal;
+	float padding;
 };
 
 struct InputType
@@ -28,14 +28,20 @@ float4 main(InputType input) : SV_TARGET
 	float4 blurScene = blurSceneTexture.Sample(SampleType, input.tex);
 
 	// Get the depth texel
-	float fDepth = depthSceneTexture.Sample(SampleType, input.tex).r;
+	float depthTexel = depthSceneTexture.Sample(SampleType, input.tex).r;
+
+	float centreDepthTexel = depthSceneTexture.Sample(SampleType, float2(0.5f,0.5f)).r;
 
 	// Invert the depth texel
-	//fDepth = 1 - fDepth;
+	depthTexel = 1 - depthTexel;
+	centreDepthTexel = 1 - centreDepthTexel;
 
-	// Calculate distance
-	float fSceneZ = (-nearVal * farVal) / (fDepth - farVal);
-	float blurFactor = saturate(abs(fSceneZ - distance) / range);
+	// Scale to world from 0 - 1 range
+	centreDepthTexel *= (farVal - nearVal);
+	depthTexel *= (farVal - nearVal);
+
+	// Calculate blur factor
+	float blurFactor = saturate(abs(depthTexel - centreDepthTexel) / range);
 
 	// Return lerp
 	return lerp(normalScene, blurScene, blurFactor);

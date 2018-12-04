@@ -73,7 +73,6 @@ private:
 	// Variables
 	float tessellationFactor;
 	float displacementHeight;
-	float depthOfFieldDistance;
 	float depthOfFieldRange;
 	XMMATRIX reflectionViewMatrix;
 
