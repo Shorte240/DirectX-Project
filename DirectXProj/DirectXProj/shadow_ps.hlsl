@@ -2,15 +2,16 @@
 Texture2D shaderTexture : register(t0);
 Texture2D depthMapTexture : register(t1);
 Texture2D depthMapTexture2 : register(t2);
+Texture2D depthMapTexture3 : register(t3);
 
 SamplerState diffuseSampler  : register(s0);
 SamplerState shadowSampler : register(s1);
 
 cbuffer LightBuffer : register(b0)
 {
-	float4 ambient[2];
-	float4 diffuse[2];
-	float4 direction[2];
+	float4 ambient[3];
+	float4 diffuse[3];
+	float4 direction[3];
 };
 
 struct InputType
@@ -18,7 +19,7 @@ struct InputType
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-    float4 lightViewPos[2] : TEXCOORD1;
+    float4 lightViewPos[3] : TEXCOORD1;
 };
 
 // Calculate lighting intensity based on direction and normal. Combine with light colour.
@@ -39,7 +40,7 @@ float4 main(InputType input) : SV_TARGET
     bool isLit = false;
 
 	// Calculate the projected texture coordinates.
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 3; i++)
     {
         float2 pTexCoord = input.lightViewPos[i].xy / input.lightViewPos[i].w;
         pTexCoord *= float2(0.5, -0.5);
@@ -49,14 +50,18 @@ float4 main(InputType input) : SV_TARGET
         if (!(pTexCoord.x < 0.f || pTexCoord.x > 1.f || pTexCoord.y < 0.f || pTexCoord.y > 1.f))
         {
             // Sample the shadow map (get depth of geometry)
-            if (i < 1)
+            if (i == 0)
             {
                 depthValue = depthMapTexture.Sample(shadowSampler, pTexCoord).r;
             }
-            else
+            else if (i == 1)
             {
                 depthValue = depthMapTexture2.Sample(shadowSampler, pTexCoord).r;
             }
+			else if (i == 2)
+			{
+				depthValue = depthMapTexture3.Sample(shadowSampler, pTexCoord).r;
+			}
 	        // Calculate the depth from the light.
             lightDepthValue = input.lightViewPos[i].z / input.lightViewPos[i].w;
             lightDepthValue -= shadowMapBias;

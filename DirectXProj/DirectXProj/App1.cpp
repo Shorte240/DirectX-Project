@@ -20,8 +20,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	reflectiveTessellatedSphereMesh = new TessellatedSphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 2.0f, 40.0f);
 
 	// Set up orthoMeshes
-	leftOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, screenHeight / 2.7);
-	rightOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, screenWidth / 2.7, screenHeight / 2.7);
+	topLeftOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, screenHeight / 2.7);
+	bottomLeftOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, -screenHeight / 2.7);
+	topRightOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, screenWidth / 2.7, screenHeight / 2.7);
 	screenOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth, screenHeight);	// Full screen size
 
 	// Load in textures
@@ -95,9 +96,10 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	rightDirectionalDirection[0] = -0.7f;
 	rightDirectionalDirection[1] = -0.7f;
 	rightDirectionalDirection[2] = 0.0f;
-	spotDirection[0] = 0.0f;
+	spotDirection[0] = 0.1f;
+	// Up/Down matrices are broken
 	spotDirection[1] = -1.0f;
-	spotDirection[2] = 0.0f;
+	spotDirection[2] = 0.1f;
 	// Set lights position
 	leftDirectionalPosition[0] = -10.0f;
 	leftDirectionalPosition[1] = 0.0f;
@@ -127,6 +129,10 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// Depth of field initial range
 	depthOfFieldRange = 1.0f;
+
+	renderTopLeftOrthoMesh = true;
+	renderTopRightOrthoMesh = true;
+	renderBottomLeftOrthoMesh = true;
 }
 
 
@@ -341,7 +347,7 @@ void App1::reflectionPass()
 	// Render water tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, reflectionViewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
+	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, reflectionViewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights);
 	tessellationShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
 
 	// Render earth tessellated sphere
@@ -378,7 +384,7 @@ void App1::firstPass()
 	// Render floor
 	mesh->sendData(renderer->getDeviceContext());
 	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
-		textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
+		textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights);
 	shadowShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
 	/*reflectionShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
 		reflectionTexture->getShaderResourceView(), textureMgr->getTexture("brick"), reflectionViewMatrix);
@@ -390,7 +396,7 @@ void App1::firstPass()
 	// Render water tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
+	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights);
 	tessellationShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
 
 	// Render earth tessellated sphere
@@ -543,15 +549,29 @@ void App1::finalPass()
 	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, upSampleTexture->getShaderResourceView());
 	textureShader->render(renderer->getDeviceContext(), screenOrthoMesh->getIndexCount());
 
-	// Render top left orthomesh
-	leftOrthoMesh->sendData(renderer->getDeviceContext());
-	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowMap->getShaderResourceView());
-	textureShader->render(renderer->getDeviceContext(), leftOrthoMesh->getIndexCount());
+	if (renderTopLeftOrthoMesh)
+	{
+		// Render top left orthomesh
+		topLeftOrthoMesh->sendData(renderer->getDeviceContext());
+		textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowMap->getShaderResourceView());
+		textureShader->render(renderer->getDeviceContext(), topLeftOrthoMesh->getIndexCount());
+	}
 
-	// Render top right orthomesh
-	rightOrthoMesh->sendData(renderer->getDeviceContext());
-	textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowMap2->getShaderResourceView());
-	textureShader->render(renderer->getDeviceContext(), rightOrthoMesh->getIndexCount());
+	if (renderBottomLeftOrthoMesh)
+	{
+		// Render bottom left orthomesh
+		bottomLeftOrthoMesh->sendData(renderer->getDeviceContext());
+		textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowMap3->getShaderResourceView());
+		textureShader->render(renderer->getDeviceContext(), bottomLeftOrthoMesh->getIndexCount());
+	}
+
+	if (renderTopRightOrthoMesh)
+	{
+		// Render top right orthomesh
+		topRightOrthoMesh->sendData(renderer->getDeviceContext());
+		textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowMap2->getShaderResourceView());
+		textureShader->render(renderer->getDeviceContext(), topRightOrthoMesh->getIndexCount());
+	}
 
 	renderer->setZBuffer(true);
 
@@ -646,6 +666,13 @@ void App1::gui()
 			ImGui::DragFloat3("Position", spotPosition, 0.5f, -100.f, 100.f, "%.2f", 1.f);
 			ImGui::TreePop();
 		}
+	}
+
+	if (ImGui::CollapsingHeader("Ortho Meshes", 0))
+	{
+		ImGui::Checkbox("Render top left ortho mesh", &renderTopLeftOrthoMesh);
+		ImGui::Checkbox("Render top right ortho mesh", &renderTopRightOrthoMesh);
+		ImGui::Checkbox("Render bottom left ortho mesh", &renderBottomLeftOrthoMesh);
 	}
 
 	// Render UI

@@ -171,6 +171,8 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	XMMATRIX tLightProjectionMatrix = XMMatrixTranspose(lights[0]->getOrthoMatrix());
 	XMMATRIX tLightViewMatrix2 = XMMatrixTranspose(lights[1]->getViewMatrix());
 	XMMATRIX tLightProjectionMatrix2 = XMMatrixTranspose(lights[1]->getOrthoMatrix());
+	XMMATRIX tLightViewMatrix3 = XMMatrixTranspose(lights[2]->getViewMatrix());
+	XMMATRIX tLightProjectionMatrix3 = XMMatrixTranspose(lights[2]->getOrthoMatrix());
 
 	// Lock the constant buffer so it can be written to.
 	result2 = deviceContext->Map(matrixBuffer2, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -180,6 +182,8 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	dataPtr2->lightProjection[0] = tLightProjectionMatrix;
 	dataPtr2->lightView[1] = tLightViewMatrix2;
 	dataPtr2->lightProjection[1] = tLightProjectionMatrix2;
+	dataPtr2->lightView[2] = tLightViewMatrix3;
+	dataPtr2->lightProjection[2] = tLightProjectionMatrix3;
 	deviceContext->Unmap(matrixBuffer2, 0);
 	deviceContext->VSSetConstantBuffers(1, 1, &matrixBuffer2);
 

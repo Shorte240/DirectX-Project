@@ -27,9 +27,9 @@ private:
 
 	struct LightBufferType
 	{
-		XMFLOAT4 ambient[2];
-		XMFLOAT4 diffuse[2];
-		XMFLOAT4 direction[2];
+		XMFLOAT4 ambient[3];
+		XMFLOAT4 diffuse[3];
+		XMFLOAT4 direction[3];
 	};
 
 	struct HeightBufferType
@@ -41,8 +41,8 @@ private:
 	struct MatrixBufferType2
 	{
 		XMMATRIX world;
-		XMMATRIX lightView[2];
-		XMMATRIX lightProjection[2];
+		XMMATRIX lightView[3];
+		XMMATRIX lightProjection[3];
 	};
 public:
 	DisplacementShader(ID3D11Device* device, HWND hwnd);

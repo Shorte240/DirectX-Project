@@ -28,7 +28,7 @@ struct InputType
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
 	float3 colour : COLOR;
-	float4 lightViewPos[2] : TEXCOORD1;
+	float4 lightViewPos[3] : TEXCOORD1;
 };
 
 struct OutputType
@@ -37,7 +37,7 @@ struct OutputType
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
 	float3 colour : COLOR;
-	float4 lightViewPos[2] : TEXCOORD1;
+	float4 lightViewPos[3] : TEXCOORD1;
 };
 
 [domain("quad")]
@@ -91,7 +91,7 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
 	output.colour = patch[0].colour;
 
 	// WHERE ITS MOST LIKELY TO NOT WORK
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		output.lightViewPos[i] = patch[i].lightViewPos[i];
 	}

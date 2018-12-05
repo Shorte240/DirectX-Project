@@ -34,16 +34,16 @@ private:
 
 	struct LightBufferType
 	{
-		XMFLOAT4 ambient[2];
-		XMFLOAT4 diffuse[2];
-		XMFLOAT4 direction[2];
+		XMFLOAT4 ambient[3];
+		XMFLOAT4 diffuse[3];
+		XMFLOAT4 direction[3];
 	};
 
 	struct MatrixBufferType2
 	{
 		XMMATRIX world;
-		XMMATRIX lightView[2];
-		XMMATRIX lightProjection[2];
+		XMMATRIX lightView[3];
+		XMMATRIX lightProjection[3];
 	};
 
 public:
@@ -51,7 +51,7 @@ public:
 	TessellationShader(ID3D11Device* device, HWND hwnd);
 	~TessellationShader();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection, ID3D11ShaderResourceView* texture, float tessFactor, XMFLOAT4 waveVariables, XMFLOAT3 camPos, ID3D11ShaderResourceView*depthMap, ID3D11ShaderResourceView*depthMap2, Light* lights[MAX_LIGHTS]);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection, ID3D11ShaderResourceView* texture, float tessFactor, XMFLOAT4 waveVariables, XMFLOAT3 camPos, ID3D11ShaderResourceView*depthMap, ID3D11ShaderResourceView*depthMap2, ID3D11ShaderResourceView*depthMap3, Light* lights[MAX_LIGHTS]);
 
 private:
 	void initShader(WCHAR* vsFilename, WCHAR* psFilename);

@@ -14,7 +14,7 @@ struct InputType
 	float3 normal : NORMAL;
 	float3 colour : COLOR;
 	float dist : PSIZE;
-	float4 lightViewPos[2] : TEXCOORD1;
+	float4 lightViewPos[3] : TEXCOORD1;
 };
 
 struct ConstantOutputType
@@ -29,7 +29,7 @@ struct OutputType
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
 	float3 colour : COLOR;
-	float4 lightViewPos[2] : TEXCOORD1;
+	float4 lightViewPos[3] : TEXCOORD1;
 };
 
 ConstantOutputType PatchConstantFunction(InputPatch<InputType, 4> inputPatch, uint patchId : SV_PrimitiveID)
@@ -73,7 +73,7 @@ OutputType main(InputPatch<InputType, 4> patch, uint pointId : SV_OutputControlP
 	// Set the input colour as the output colour.
 	output.colour = patch[pointId].colour;
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		output.lightViewPos[i] = patch[pointId].lightViewPos[i];
 	}

@@ -52,8 +52,9 @@ private:
 
 	// Meshes
 	PlaneMesh* mesh;
-	OrthoMesh* leftOrthoMesh;
-	OrthoMesh* rightOrthoMesh;
+	OrthoMesh* topLeftOrthoMesh;
+	OrthoMesh* topRightOrthoMesh;
+	OrthoMesh* bottomLeftOrthoMesh;
 	OrthoMesh* screenOrthoMesh;
 	TessellatedSphereMesh* waterTessellatedSphereMesh;
 	TessellatedSphereMesh* earthTessellatedSphereMesh;
@@ -80,6 +81,9 @@ private:
 	float displacementHeight;
 	float depthOfFieldRange;
 	XMMATRIX reflectionViewMatrix;
+	bool renderTopLeftOrthoMesh;
+	bool renderTopRightOrthoMesh;
+	bool renderBottomLeftOrthoMesh;
 
 	// Lights ambient colour
 	float leftDirectionalAmbientColour[4];
