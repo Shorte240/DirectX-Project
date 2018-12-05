@@ -57,6 +57,7 @@ float4 main(InputType input) : SV_TARGET
     float lightDepthValue;
     float shadowMapBias = 0.01f;
     float4 colour = float4(0.f, 0.f, 0.f, 1.f);
+	float4 spotLightColour;
     float4 textureColour = shaderTexture.Sample(diffuseSampler, input.tex);
     bool isLit = false;
 
@@ -90,21 +91,26 @@ float4 main(InputType input) : SV_TARGET
 	        // Compare the depth of the shadow map value and the depth of the light to determine whether to shadow or to light this pixel.
             if (lightDepthValue < depthValue)
             {
-                colour += calculateLighting(-direction[i].xyz, input.normal, diffuse[i]);
+				if (i < 2)
+				{
+					colour += calculateLighting(-direction[i].xyz, input.normal, diffuse[i]);
+				}
+				else
+				{
+					// Light calculations for spot light
+					float3 spotLightVector = spotPosition.xyz - input.worldPosition;
+					float dist = length(spotLightVector);
+					float spotLightAttenuation = 1 / (constantFactor + (linearFactor * dist) + (quadraticFactor * pow(dist, 2)));
+
+					spotLightVector = normalize(spotLightVector);
+					spotLightColour = (calculateLighting(spotLightVector, input.normal, diffuse[2]) * spotLightAttenuation);
+					float spotIntensity = calculateSpotlightCone(direction[2], spotLightVector, spotLightAngle);
+					spotLightColour *= spotIntensity;
+				}
             }
             isLit = true;
         }
     }
-
-	// Light calculations for spot light
-	float3 spotLightVector = spotPosition.xyz - input.worldPosition;
-	float dist = length(spotLightVector);
-	float spotLightAttenuation = 1 / (constantFactor + (linearFactor * dist) + (quadraticFactor * pow(dist, 2)));
-
-	spotLightVector = normalize(spotLightVector);
-	float4 spotLightColour = (calculateLighting(spotLightVector, input.normal, diffuse[2]) * spotLightAttenuation);
-	float spotIntensity = calculateSpotlightCone(direction[2], spotLightVector, spotLightAngle);
-	spotLightColour *= spotIntensity;
 
     if (!isLit)
     {
@@ -112,7 +118,7 @@ float4 main(InputType input) : SV_TARGET
     }
     else
     {
-        colour = saturate(colour + spotLightColour + ambient[0]);
-        return saturate(colour * textureColour);
+        colour = saturate(colour + ambient[0]);
+        return saturate((colour + spotLightColour) * textureColour);
     }
 }

@@ -152,8 +152,9 @@ void ShadowShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const
 	{
 		lightPtr->ambient[i] = lights[i]->getAmbientColour();
 		lightPtr->diffuse[i] = lights[i]->getDiffuseColour();
-		lightPtr->direction[i] = XMFLOAT4(lights[i]->getDirection().x, lights[i]->getDirection().y, lights[i]->getDirection().z, 1.0f);
+		lightPtr->direction[i] = XMFLOAT4(lights[i]->getDirection().x, lights[i]->getDirection().y, lights[i]->getDirection().z, 0.0f);
 	}
+	lightPtr->position = XMFLOAT4(lights[2]->getPosition().x, lights[2]->getPosition().y, lights[2]->getPosition().z, 0.0f);
 	lightPtr->spotlightAngle = spotAngle;
 	lightPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	deviceContext->Unmap(lightBuffer, 0);
