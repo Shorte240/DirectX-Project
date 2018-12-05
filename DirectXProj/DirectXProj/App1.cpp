@@ -184,7 +184,7 @@ bool App1::render()
 	// Perform depth pass on camera
 	cameraDepthPass();
 	// Reflection Pass
-	reflectionPass();
+	//reflectionPass();
 	// Render scene to render texture
 	firstPass();
 	// Disable wireframe

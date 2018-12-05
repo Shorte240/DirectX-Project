@@ -67,6 +67,7 @@ float4 main(InputType input) : SV_TARGET
         float2 pTexCoord = input.lightViewPos[i].xy / input.lightViewPos[i].w;
         pTexCoord *= float2(0.5, -0.5);
         pTexCoord += float2(0.5f, 0.5f);
+		saturate(pTexCoord);
 
         // Determine if the projected coordinates are in the 0 to 1 range.  If not don't do lighting.
         if (!(pTexCoord.x < 0.f || pTexCoord.x > 1.f || pTexCoord.y < 0.f || pTexCoord.y > 1.f))
@@ -112,13 +113,29 @@ float4 main(InputType input) : SV_TARGET
         }
     }
 
-    if (!isLit)
-    {
-        return textureColour;
-    }
-    else
-    {
-        colour = saturate(colour + ambient[0]);
-        return saturate((colour + spotLightColour) * textureColour);
-    }
+	if (!isLit)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			if (i < 2)
+			{
+				colour += calculateLighting(-direction[i].xyz, input.normal, diffuse[i]);
+			}
+			else
+			{
+				// Light calculations for spot light
+				float3 spotLightVector = spotPosition.xyz - input.worldPosition;
+				float dist = length(spotLightVector);
+				float spotLightAttenuation = 1 / (constantFactor + (linearFactor * dist) + (quadraticFactor * pow(dist, 2)));
+
+				spotLightVector = normalize(spotLightVector);
+				spotLightColour = (calculateLighting(spotLightVector, input.normal, diffuse[2]) * spotLightAttenuation);
+				float spotIntensity = calculateSpotlightCone(direction[2], spotLightVector, spotLightAngle);
+				spotLightColour *= spotIntensity;
+			}
+		}
+	}
+
+	//colour = saturate(colour + ambient[0]);
+	return saturate((colour + spotLightColour) * textureColour);
 }

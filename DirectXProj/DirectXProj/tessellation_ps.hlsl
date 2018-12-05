@@ -117,11 +117,27 @@ float4 main(InputType input) : SV_TARGET
 
 	if (!isLit)
 	{
-		return textureColour;
+		for (int i = 0; i < 3; i++)
+		{
+			if (i < 2)
+			{
+				colour += calculateLighting(-direction[i].xyz, input.normal, diffuse[i]);
+			}
+			else
+			{
+				// Light calculations for spot light
+				float3 spotLightVector = spotPosition.xyz - input.worldPosition;
+				float dist = length(spotLightVector);
+				float spotLightAttenuation = 1 / (constantFactor + (linearFactor * dist) + (quadraticFactor * pow(dist, 2)));
+
+				spotLightVector = normalize(spotLightVector);
+				spotLightColour = (calculateLighting(spotLightVector, input.normal, diffuse[2]) * spotLightAttenuation);
+				float spotIntensity = calculateSpotlightCone(direction[2], spotLightVector, spotLightAngle);
+				spotLightColour *= spotIntensity;
+			}
+		}
 	}
-	else
-	{
-		colour = saturate(colour + ambient[0]);
-		return saturate((colour + spotLightColour) * textureColour);
-	}
+
+	colour = saturate(colour + ambient[0]);
+	return saturate((colour + spotLightColour) * textureColour);
 }
