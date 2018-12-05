@@ -8,7 +8,7 @@
 using namespace std;
 using namespace DirectX;
 
-#define MAX_LIGHTS 2
+#define MAX_LIGHTS 3
 
 class ShadowShader : public BaseShader
 {

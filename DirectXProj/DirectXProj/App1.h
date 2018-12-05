@@ -8,7 +8,7 @@
 #include "Shaders.h"
 #include "D3D.h"
 
-#define MAX_LIGHTS 2
+#define MAX_LIGHTS 3
 
 class App1 : public BaseApplication
 {
@@ -37,6 +37,7 @@ protected:
 	void setLightSettings();
 
 private:
+	// Shaders
 	TextureShader* textureShader;
 	ShadowShader* shadowShader;
 	DepthShader* depthShader;
@@ -49,6 +50,7 @@ private:
 	DepthOfFieldShader* depthOfFieldShader;
 	ReflectionShader* reflectionShader;
 
+	// Meshes
 	PlaneMesh* mesh;
 	OrthoMesh* leftOrthoMesh;
 	OrthoMesh* rightOrthoMesh;
@@ -57,11 +59,13 @@ private:
 	TessellatedSphereMesh* earthTessellatedSphereMesh;
 	TessellatedSphereMesh* reflectiveTessellatedSphereMesh;
 
+	// Lights
 	Light* lights[MAX_LIGHTS];	
 
+	// Render Textures
 	RenderTexture* shadowMap;
 	RenderTexture* shadowMap2;
-
+	RenderTexture* shadowMap3;
 	RenderTexture* normalSceneTexture;
 	RenderTexture* horizontalBlurTexture;
 	RenderTexture* verticalBlurTexture;
@@ -77,14 +81,28 @@ private:
 	float depthOfFieldRange;
 	XMMATRIX reflectionViewMatrix;
 
+	// Lights ambient colour
 	float leftDirectionalAmbientColour[4];
 	float rightDirectionalAmbientColour[4];
+	float spotAmbientColour[4];
+
+	// Lights diffuse colour
 	float leftDirectionalDiffuseColour[4];
 	float rightDirectionalDiffuseColour[4];
+	float spotDiffuseColour[4];
+
+	// Lights direction
 	float leftDirectionalDirection[3];
 	float rightDirectionalDirection[3];
+	float spotDirection[4];
+
+	// Lights position
 	float leftDirectionalPosition[3];
 	float rightDirectionalPosition[3];
+	float spotPosition[3];
+
+	// Spot light angle
+	float spotLightAngle;
 
 	struct WaveVariables
 	{

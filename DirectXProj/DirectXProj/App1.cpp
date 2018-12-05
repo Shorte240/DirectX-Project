@@ -55,6 +55,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// This is your shadow map
 	shadowMap = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
 	shadowMap2 = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
+	shadowMap3 = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
 	normalSceneTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	horizontalBlurTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	verticalBlurTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
@@ -66,45 +67,65 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// Light[0] is a direction light coming from the left
 	lights[0] = new Light;
+	// Light[1] is a direction light coming from the right
+	lights[1] = new Light;
+	// Light[2] is a spot light coming from above
+	lights[2] = new Light;
 	for (int i = 0; i < 3; i++)
 	{
 		leftDirectionalAmbientColour[i] = 0.3f;
 		rightDirectionalAmbientColour[i] = 0.3f;
+		spotAmbientColour[i] = 0.3f;
+		spotDiffuseColour[i] = 1.0f;
 	}
+	// Set light .w/alpha to 1.0f
 	leftDirectionalAmbientColour[3] = 1.0f;
 	rightDirectionalAmbientColour[3] = 1.0f;
+	spotAmbientColour[3] = 1.0f;
+	// Set lights diffuse colour
 	leftDirectionalDiffuseColour[0] = 0.8f;
 	leftDirectionalDiffuseColour[3] = 1.0f;
 	rightDirectionalDiffuseColour[2] = 0.8f;
 	rightDirectionalDiffuseColour[3] = 1.0f;
+	spotDiffuseColour[3] = 1.0f;
+	// Set lights direction
 	leftDirectionalDirection[0] = 0.7f;
 	leftDirectionalDirection[1] = -0.7f;
 	leftDirectionalDirection[2] = 0.0f;
 	rightDirectionalDirection[0] = -0.7f;
 	rightDirectionalDirection[1] = -0.7f;
 	rightDirectionalDirection[2] = 0.0f;
+	spotDirection[0] = 0.0f;
+	spotDirection[1] = -1.0f;
+	spotDirection[2] = 0.0f;
+	// Set lights position
 	leftDirectionalPosition[0] = -10.0f;
 	leftDirectionalPosition[1] = 0.0f;
 	leftDirectionalPosition[2] = 0.0f;
+	spotPosition[0] = 10.0f;
+	spotPosition[1] = 10.0f;
+	spotPosition[2] = 10.0f;
 	rightDirectionalPosition[0] = 10.0f;
 	rightDirectionalPosition[1] = 0.0f;
 	rightDirectionalPosition[2] = 0.0f;
+	// Generate light ortho matrix
 	lights[0]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
-
-	// Light[1] is a direction light coming from the right
-	lights[1] = new Light;
 	lights[1]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
+	lights[2]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
 
+	// Height maps initial displacement height
 	displacementHeight = 0;
 
 	// Set default tessellation factor
 	tessellationFactor = 2.0f;
 
+	// Wave variables initial values
 	wavVar.elapsedTime = 0.0f;
 	wavVar.height = 0.0f;
 	wavVar.frequency = 0.0f;
 	wavVar.speed = 1.0f;
 
+	// Depth of field initial range
 	depthOfFieldRange = 1.0f;
 }
 
@@ -146,6 +167,7 @@ bool App1::render()
 	// Perform depth pass
 	depthPass(lights[0], shadowMap);
 	depthPass(lights[1], shadowMap2);
+	depthPass(lights[2], shadowMap3);
 	// Perform depth pass on camera
 	cameraDepthPass();
 	// Reflection Pass
@@ -605,6 +627,25 @@ void App1::gui()
 			ImGui::DragFloat3("Position", rightDirectionalPosition, 0.5f, -100.f, 100.f, "%.2f", 1.f);
 			ImGui::TreePop();
 		}
+		if (ImGui::TreeNode("Spot Light"))
+		{
+			ImGui::DragFloat4("Ambient Colour", spotAmbientColour, (1.0f / 255.0f), 0.0f, 1.f, "%.2f", 1.f);
+			ImGui::ColorEdit4("Diffuse Colour", spotDiffuseColour);
+			if (spotDirection[0] >= 0.01f && spotDirection[0] <= 0.015f)
+			{
+				spotDirection[0] -= 0.03f;
+			}
+			if (spotDirection[0] <= -0.01f && spotDirection[0] >= -0.015f)
+			{
+				spotDirection[0] += 0.03f;
+			}
+			if (spotDirection[0] != 0.009f || spotDirection[0] != -0.009f)
+			{
+				ImGui::DragFloat3("Direction", spotDirection, 0.01f, -1.f, 1.f, "%.3f", 1.f);
+			}
+			ImGui::DragFloat3("Position", spotPosition, 0.5f, -100.f, 100.f, "%.2f", 1.f);
+			ImGui::TreePop();
+		}
 	}
 
 	// Render UI
@@ -623,5 +664,10 @@ void App1::setLightSettings()
 	lights[1]->setDiffuseColour(rightDirectionalDiffuseColour[0], rightDirectionalDiffuseColour[1], rightDirectionalDiffuseColour[2], rightDirectionalDiffuseColour[3]);
 	lights[1]->setDirection(rightDirectionalDirection[0], rightDirectionalDirection[1], rightDirectionalDirection[2]);
 	lights[1]->setPosition(rightDirectionalPosition[0], rightDirectionalPosition[1], rightDirectionalPosition[2]);
+
+	lights[2]->setAmbientColour(spotAmbientColour[0], spotAmbientColour[1], spotAmbientColour[2], spotAmbientColour[3]);
+	lights[2]->setDiffuseColour(spotDiffuseColour[0], spotDiffuseColour[1], spotDiffuseColour[2], spotDiffuseColour[3]);
+	lights[2]->setDirection(spotDirection[0], spotDirection[1], spotDirection[2]);
+	lights[2]->setPosition(spotPosition[0], spotPosition[1], spotPosition[2]);
 }
 
