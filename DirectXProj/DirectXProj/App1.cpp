@@ -64,18 +64,35 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	cameraDepthTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	reflectionTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 
+	// Light[0] is a direction light coming from the left
 	lights[0] = new Light;
-	lights[0]->setAmbientColour(0.3f, 0.3f, 0.3f, 1.0f);
-	lights[0]->setDiffuseColour(0.8f, 0.0f, 0.0f, 1.0f);
-	lights[0]->setDirection(0.7f, -0.7f, 0.0f);
-	lights[0]->setPosition(-10.f, 0.f, 0.f);
+	for (int i = 0; i < 3; i++)
+	{
+		leftDirectionalAmbientColour[i] = 0.3f;
+		rightDirectionalAmbientColour[i] = 0.3f;
+	}
+	leftDirectionalAmbientColour[3] = 1.0f;
+	rightDirectionalAmbientColour[3] = 1.0f;
+	leftDirectionalDiffuseColour[0] = 0.8f;
+	leftDirectionalDiffuseColour[3] = 1.0f;
+	rightDirectionalDiffuseColour[2] = 0.8f;
+	rightDirectionalDiffuseColour[3] = 1.0f;
+	leftDirectionalDirection[0] = 0.7f;
+	leftDirectionalDirection[1] = -0.7f;
+	leftDirectionalDirection[2] = 0.0f;
+	rightDirectionalDirection[0] = -0.7f;
+	rightDirectionalDirection[1] = -0.7f;
+	rightDirectionalDirection[2] = 0.0f;
+	leftDirectionalPosition[0] = -10.0f;
+	leftDirectionalPosition[1] = 0.0f;
+	leftDirectionalPosition[2] = 0.0f;
+	rightDirectionalPosition[0] = 10.0f;
+	rightDirectionalPosition[1] = 0.0f;
+	rightDirectionalPosition[2] = 0.0f;
 	lights[0]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
 
+	// Light[1] is a direction light coming from the right
 	lights[1] = new Light;
-	lights[1]->setAmbientColour(0.3f, 0.3f, 0.3f, 1.0f);
-	lights[1]->setDiffuseColour(0.0f, 0.0f, 0.8f, 1.0f);
-	lights[1]->setDirection(-0.7f, -0.7f, 0.0f);
-	lights[1]->setPosition(10.f, 0.f, 0.f);
 	lights[1]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
 
 	displacementHeight = 0;
@@ -111,7 +128,7 @@ bool App1::frame()
 	{
 		return false;
 	}
-	
+
 	// Render the graphics.
 	result = render();
 	if (!result)
@@ -124,6 +141,8 @@ bool App1::frame()
 
 bool App1::render()
 {
+	// Set the light settings
+	setLightSettings();
 	// Perform depth pass
 	depthPass(lights[0], shadowMap);
 	depthPass(lights[1], shadowMap2);
@@ -546,8 +565,63 @@ void App1::gui()
 		ImGui::SliderFloat("Range", &depthOfFieldRange, 0.0f, 2.0f);
 	}
 
+	if (ImGui::CollapsingHeader("Light Settings", 0))
+	{
+		if (ImGui::TreeNode("Left Directional"))
+		{
+			ImGui::DragFloat4("Ambient Colour", leftDirectionalAmbientColour, (1.0f / 255.0f), 0.0f, 1.f, "%.2f", 1.f);
+			ImGui::ColorEdit4("Diffuse Colour", leftDirectionalDiffuseColour);
+			if (leftDirectionalDirection[0] >= 0.01f && leftDirectionalDirection[0] <= 0.015f)
+			{
+				leftDirectionalDirection[0] -= 0.03f;
+			}
+			if (leftDirectionalDirection[0] <= -0.01f && leftDirectionalDirection[0] >= -0.015f)
+			{
+				leftDirectionalDirection[0] += 0.03f;
+			}
+			if (leftDirectionalDirection[0] != 0.009f || leftDirectionalDirection[0] != -0.009f)
+			{
+				ImGui::DragFloat3("Direction", leftDirectionalDirection, 0.01f, -1.f, 1.f, "%.3f", 1.f);
+			}
+			ImGui::DragFloat3("Position", leftDirectionalPosition, 0.5f, -100.f, 100.f, "%.2f", 1.f);
+			ImGui::TreePop();
+		}
+		if (ImGui::TreeNode("Right Directional"))
+		{
+			ImGui::DragFloat4("Ambient Colour", rightDirectionalAmbientColour, (1.0f / 255.0f), 0.0f, 1.f, "%.2f", 1.f);
+			ImGui::ColorEdit4("Diffuse Colour", rightDirectionalDiffuseColour);
+			if (rightDirectionalDirection[0] >= 0.01f && rightDirectionalDirection[0] <= 0.015f)
+			{
+				rightDirectionalDirection[0] -= 0.03f;
+			}
+			if (rightDirectionalDirection[0] <= -0.01f && rightDirectionalDirection[0] >= -0.015f)
+			{
+				rightDirectionalDirection[0] += 0.03f;
+			}
+			if (rightDirectionalDirection[0] != 0.009f || rightDirectionalDirection[0] != -0.009f)
+			{
+				ImGui::DragFloat3("Direction", rightDirectionalDirection, 0.01f, -1.f, 1.f, "%.3f", 1.f);
+			}
+			ImGui::DragFloat3("Position", rightDirectionalPosition, 0.5f, -100.f, 100.f, "%.2f", 1.f);
+			ImGui::TreePop();
+		}
+	}
+
 	// Render UI
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
+
+void App1::setLightSettings()
+{
+	lights[0]->setAmbientColour(leftDirectionalAmbientColour[0], leftDirectionalAmbientColour[1], leftDirectionalAmbientColour[2], leftDirectionalAmbientColour[3]);
+	lights[0]->setDiffuseColour(leftDirectionalDiffuseColour[0], leftDirectionalDiffuseColour[1], leftDirectionalDiffuseColour[2], leftDirectionalDiffuseColour[3]);
+	lights[0]->setDirection(leftDirectionalDirection[0], leftDirectionalDirection[1], leftDirectionalDirection[2]);
+	lights[0]->setPosition(leftDirectionalPosition[0], leftDirectionalPosition[1], leftDirectionalPosition[2]);
+
+	lights[1]->setAmbientColour(rightDirectionalAmbientColour[0], rightDirectionalAmbientColour[1], rightDirectionalAmbientColour[2], rightDirectionalAmbientColour[3]);
+	lights[1]->setDiffuseColour(rightDirectionalDiffuseColour[0], rightDirectionalDiffuseColour[1], rightDirectionalDiffuseColour[2], rightDirectionalDiffuseColour[3]);
+	lights[1]->setDirection(rightDirectionalDirection[0], rightDirectionalDirection[1], rightDirectionalDirection[2]);
+	lights[1]->setPosition(rightDirectionalPosition[0], rightDirectionalPosition[1], rightDirectionalPosition[2]);
 }
 

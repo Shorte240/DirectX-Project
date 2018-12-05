@@ -34,6 +34,7 @@ protected:
 	void reflectionPass();
 	void finalPass();
 	void gui();
+	void setLightSettings();
 
 private:
 	TextureShader* textureShader;
@@ -75,6 +76,15 @@ private:
 	float displacementHeight;
 	float depthOfFieldRange;
 	XMMATRIX reflectionViewMatrix;
+
+	float leftDirectionalAmbientColour[4];
+	float rightDirectionalAmbientColour[4];
+	float leftDirectionalDiffuseColour[4];
+	float rightDirectionalDiffuseColour[4];
+	float leftDirectionalDirection[3];
+	float rightDirectionalDirection[3];
+	float leftDirectionalPosition[3];
+	float rightDirectionalPosition[3];
 
 	struct WaveVariables
 	{
