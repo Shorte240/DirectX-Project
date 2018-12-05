@@ -30,6 +30,7 @@ struct OutputType
 	float3 colour : COLOR;
 	float dist : PSIZE;
 	float4 lightViewPos[3] : TEXCOORD1;
+	float3 worldPosition : TEXCOORD4;
 };
 
 OutputType main(InputType input)
@@ -59,6 +60,8 @@ OutputType main(InputType input)
 		output.lightViewPos[i] = mul(output.lightViewPos[i], lightProjectionMatrix[i]);
 		output.lightViewPos[i].w = 1.0f;
 	}
+
+	output.worldPosition = mul(input.position, worldMatrix).xyz;
 
 	return output;
 }

@@ -107,6 +107,9 @@ private:
 
 	// Spot light angle
 	float spotLightAngle;
+	float constantFactor;
+	float linearFactor;
+	float quadraticFactor;
 
 	struct WaveVariables
 	{

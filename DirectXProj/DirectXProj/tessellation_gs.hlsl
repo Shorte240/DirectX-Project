@@ -12,6 +12,7 @@ struct InputType
 	float3 normal : NORMAL;
 	float3 colour : COLOR;
 	float4 lightViewPos[3] : TEXCOORD1;
+	float3 worldPosition : TEXCOORD4;
 };
 
 struct OutputType
@@ -21,6 +22,7 @@ struct OutputType
 	float3 normal : NORMAL;
 	float3 colour : COLOR;
 	float4 lightViewPos[3] : TEXCOORD1;
+	float3 worldPosition : TEXCOORD4;
 };
 
 // Input primitives
@@ -43,6 +45,7 @@ void main(triangle InputType input[3], inout TriangleStream<OutputType> triStrea
 		output.lightViewPos[0] = input[i].lightViewPos[0];
 		output.lightViewPos[1] = input[i].lightViewPos[1];
 		output.lightViewPos[2] = input[i].lightViewPos[2];
+		output.worldPosition = input[i].worldPosition;
 		triStream.Append(output);
 	}
 	triStream.RestartStrip();

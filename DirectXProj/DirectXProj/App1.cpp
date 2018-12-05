@@ -130,9 +130,16 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// Depth of field initial range
 	depthOfFieldRange = 1.0f;
 
+	// Bool initial values
 	renderTopLeftOrthoMesh = true;
 	renderTopRightOrthoMesh = true;
 	renderBottomLeftOrthoMesh = true;
+
+	// Spot lights initial angle value
+	spotLightAngle = 45.f;
+	constantFactor = 0.5f;
+	linearFactor = 0.125f;
+	quadraticFactor = 0.0f;
 }
 
 
@@ -347,7 +354,7 @@ void App1::reflectionPass()
 	// Render water tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, reflectionViewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights);
+	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, reflectionViewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
 	tessellationShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
 
 	// Render earth tessellated sphere
@@ -384,7 +391,7 @@ void App1::firstPass()
 	// Render floor
 	mesh->sendData(renderer->getDeviceContext());
 	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
-		textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights);
+		textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
 	shadowShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
 	/*reflectionShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
 		reflectionTexture->getShaderResourceView(), textureMgr->getTexture("brick"), reflectionViewMatrix);
@@ -396,7 +403,7 @@ void App1::firstPass()
 	// Render water tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights);
+	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
 	tessellationShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
 
 	// Render earth tessellated sphere
@@ -664,6 +671,10 @@ void App1::gui()
 				ImGui::DragFloat3("Direction", spotDirection, 0.01f, -1.f, 1.f, "%.3f", 1.f);
 			}
 			ImGui::DragFloat3("Position", spotPosition, 0.5f, -100.f, 100.f, "%.2f", 1.f);
+			ImGui::DragFloat("Angle", &spotLightAngle, 0.5f, 0.1f, 90.f, "%.2f", 1.f);
+			ImGui::DragFloat("Constant Factor", &constantFactor, 0.01f, 0.1f, 1.f, "%.2f", 1.f);
+			ImGui::DragFloat("Linear Factor", &linearFactor, 0.01f, 0.1f, 1.f, "%.2f", 1.f);
+			ImGui::DragFloat("Quadratic Factor", &quadraticFactor, 0.01f, 1.f, 90.f, "%.2f", 1.f);
 			ImGui::TreePop();
 		}
 	}

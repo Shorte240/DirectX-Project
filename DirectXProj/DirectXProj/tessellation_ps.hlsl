@@ -14,6 +14,17 @@ cbuffer LightBuffer : register(b0)
 	float4 ambient[3];
 	float4 diffuse[3];
 	float4 direction[3];
+	float4 spotPosition;
+	float spotLightAngle;
+	float3 padding;
+};
+
+cbuffer AttenuationBuffer : register(b1)
+{
+	float constantFactor;
+	float linearFactor;
+	float quadraticFactor;
+	float pad;
 };
 
 struct InputType
@@ -23,6 +34,7 @@ struct InputType
 	float3 normal : NORMAL;
 	float4 colour : COLOR;
 	float4 lightViewPos[3] : TEXCOORD1;
+	float3 worldPosition : TEXCOORD4;
 };
 
 // Calculate lighting intensity based on direction and normal. Combine with light colour.
@@ -31,6 +43,15 @@ float4 calculateLighting(float3 lightDirection, float3 normal, float4 diffuse)
 	float intensity = saturate(dot(normal, lightDirection));
 	float4 colour = saturate(diffuse * intensity);
 	return colour;
+}
+
+// Calculate the cone for the spotlight depending on defined angle
+float calculateSpotlightCone(float4 dir, float3 lVector, float spotAngle_)
+{
+	float minCos = cos(spotAngle_);
+	float maxCos = (minCos + 1.0f) / 2.0f;
+	float cosAngle = dot(direction[2].xyz, -lVector);
+	return smoothstep(minCos, maxCos, cosAngle);
 }
 
 float4 main(InputType input) : SV_TARGET
@@ -78,13 +99,23 @@ float4 main(InputType input) : SV_TARGET
 		}
 	}
 
+	// Light calculations for spot light
+	float3 spotLightVector = spotPosition.xyz - input.worldPosition;
+	float dist = length(spotLightVector);
+	float spotLightAttenuation = 1 / (constantFactor + (linearFactor * dist) + (quadraticFactor * pow(dist, 2)));
+
+	spotLightVector = normalize(spotLightVector);
+	float4 spotLightColour = (calculateLighting(spotLightVector, input.normal, diffuse[2]) * spotLightAttenuation);
+	float spotIntensity = calculateSpotlightCone(direction[2], spotLightVector, spotLightAngle);
+	spotLightColour *= spotIntensity;
+
 	if (!isLit)
 	{
 		return textureColour;
 	}
 	else
 	{
-		colour = saturate(colour + ambient[0]);
+		colour = saturate(colour + spotLightColour + ambient[0]);
 		return saturate(colour * textureColour);
 	}
 }

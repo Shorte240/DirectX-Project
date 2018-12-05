@@ -21,6 +21,7 @@ struct OutputType
     float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
     float4 lightViewPos[3] : TEXCOORD1;
+	float3 worldPosition : TEXCOORD4;
 };
 
 
@@ -44,6 +45,8 @@ OutputType main(InputType input)
     output.tex = input.tex;
     output.normal = mul(input.normal, (float3x3)worldMatrix);
     output.normal = normalize(output.normal);
+
+	output.worldPosition = mul(input.position, worldMatrix).xyz;
 
 	return output;
 }
