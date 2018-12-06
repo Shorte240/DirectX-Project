@@ -48,7 +48,7 @@ float4 calculateLighting(float3 lightDirection, float3 normal, float4 diffuse)
 // Calculate the cone for the spotlight depending on defined angle
 float calculateSpotlightCone(float4 dir, float3 lVector, float spotAngle_)
 {
-	float minCos = cos(spotAngle_);
+	float minCos = cos(radians(spotAngle_));
 	float maxCos = (minCos + 1.0f) / 2.0f;
 	float cosAngle = dot(direction[2].xyz, -lVector);
 	return smoothstep(minCos, maxCos, cosAngle);

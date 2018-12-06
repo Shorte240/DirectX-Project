@@ -104,7 +104,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	leftDirectionalPosition[0] = -10.0f;
 	leftDirectionalPosition[1] = 0.0f;
 	leftDirectionalPosition[2] = 0.0f;
-	spotPosition[0] = 10.0f;
+	spotPosition[0] = 0.0f;
 	spotPosition[1] = 10.0f;
 	spotPosition[2] = 10.0f;
 	rightDirectionalPosition[0] = 10.0f;
@@ -671,10 +671,14 @@ void App1::gui()
 				ImGui::DragFloat3("Direction", spotDirection, 0.01f, -1.f, 1.f, "%.3f", 1.f);
 			}
 			ImGui::DragFloat3("Position", spotPosition, 0.5f, -100.f, 100.f, "%.2f", 1.f);
-			ImGui::DragFloat("Angle", &spotLightAngle, 0.5f, 0.1f, 90.f, "%.2f", 1.f);
-			ImGui::DragFloat("Constant Factor", &constantFactor, 0.01f, 0.1f, 1.f, "%.2f", 1.f);
-			ImGui::DragFloat("Linear Factor", &linearFactor, 0.01f, 0.1f, 1.f, "%.2f", 1.f);
-			ImGui::DragFloat("Quadratic Factor", &quadraticFactor, 0.01f, 1.f, 90.f, "%.2f", 1.f);
+			if (ImGui::TreeNode("Advanced"))
+			{
+				ImGui::DragFloat("Angle", &spotLightAngle, 0.5f, 0.f, 90.f, "%.2f", 1.f);
+				ImGui::DragFloat("Constant Factor", &constantFactor, 0.01f, 0.01f, 1.f, "%.2f", 1.f);
+				ImGui::DragFloat("Linear Factor", &linearFactor, 0.01f, 0.01f, 1.f, "%.3f", 1.f);
+				ImGui::DragFloat("Quadratic Factor", &quadraticFactor, 0.001f, 0.f, 0.5f, "%.2f", 1.f);
+				ImGui::TreePop();
+			}
 			ImGui::TreePop();
 		}
 	}
