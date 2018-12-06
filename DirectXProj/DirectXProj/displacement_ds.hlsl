@@ -30,6 +30,7 @@ struct InputType
     float3 normal : NORMAL;
     float3 colour : COLOR;
     float4 lightViewPos[3] : TEXCOORD1;
+	float3 worldPosition : TEXCOORD4;
 };
 
 struct OutputType
@@ -39,6 +40,7 @@ struct OutputType
     float3 normal : NORMAL;
     float3 colour : COLOR;
     float4 lightViewPos[3] : TEXCOORD1;
+	float3 worldPosition : TEXCOORD4;
 };
 
 [domain("quad")]
@@ -88,6 +90,8 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     {
         output.lightViewPos[i] = patch[i].lightViewPos[i];
     }
+
+	output.worldPosition = patch[0].worldPosition;
 
     return output;
 }

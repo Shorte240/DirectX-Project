@@ -54,6 +54,13 @@ DisplacementShader::~DisplacementShader()
 		cameraBuffer = 0;
 	}
 
+	// Release the attenuation constant buffer.
+	if (attenuationBuffer)
+	{
+		attenuationBuffer->Release();
+		attenuationBuffer = 0;
+	}
+
 	//Release base shader components
 	BaseShader::~BaseShader();
 }
@@ -67,6 +74,7 @@ void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	D3D11_BUFFER_DESC heightBufferDesc;
 	D3D11_BUFFER_DESC tessellationBufferDesc;
 	D3D11_BUFFER_DESC cameraBufferDesc;
+	D3D11_BUFFER_DESC attenuationBufferDesc;
 
 	// Load (+ compile) shader files
 	loadVertexShader(vsFilename);
@@ -141,6 +149,17 @@ void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	cameraBufferDesc.MiscFlags = 0;
 	cameraBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&cameraBufferDesc, NULL, &cameraBuffer);
+
+	// Setup attenuation buffer
+	// Setup the description of the attenuation factor dynamic constant buffer that is in the pixel shader.
+	// Note that ByteWidth always needs to be a multiple of 16 if using D3D11_BIND_CONSTANT_BUFFER or CreateBuffer will fail.
+	attenuationBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	attenuationBufferDesc.ByteWidth = sizeof(AttenuationBufferType);
+	attenuationBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	attenuationBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	attenuationBufferDesc.MiscFlags = 0;
+	attenuationBufferDesc.StructureByteStride = 0;
+	renderer->CreateBuffer(&attenuationBufferDesc, NULL, &attenuationBuffer);
 }
 
 void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR* dsFilename, WCHAR* psFilename)
@@ -153,7 +172,7 @@ void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR*
 	loadDomainShader(dsFilename);
 }
 
-void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext, const XMMATRIX & worldMatrix, const XMMATRIX & viewMatrix, const XMMATRIX & projectionMatrix, ID3D11ShaderResourceView* heightTex, Light* lights[MAX_LIGHTS], float tessFactor, float height, XMFLOAT3 camPos)
+void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext, const XMMATRIX & worldMatrix, const XMMATRIX & viewMatrix, const XMMATRIX & projectionMatrix, ID3D11ShaderResourceView* heightTex, Light* lights[MAX_LIGHTS], float tessFactor, float height, XMFLOAT3 camPos, float spotAngle, float constFactor, float linFactor, float quadFactor)
 {
 	HRESULT result, result2;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -233,9 +252,22 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 		lightPtr->diffuse[i] = lights[i]->getDiffuseColour();
 		lightPtr->direction[i] = XMFLOAT4(lights[i]->getDirection().x, lights[i]->getDirection().y, lights[i]->getDirection().z, 1.0f);
 	}
-
+	lightPtr->position = XMFLOAT4(lights[2]->getPosition().x, lights[2]->getPosition().y, lights[2]->getPosition().z, 1.0f);
+	lightPtr->spotlightAngle = spotAngle;
+	lightPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	deviceContext->Unmap(lightBuffer, 0);
 	deviceContext->PSSetConstantBuffers(0, 1, &lightBuffer);
+
+	// Send attenuation data to pixel shader
+	AttenuationBufferType* attenPtr;
+	deviceContext->Map(attenuationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	attenPtr = (AttenuationBufferType*)mappedResource.pData;
+	attenPtr->constantFactor = constFactor;
+	attenPtr->linearFactor = linFactor;
+	attenPtr->quadraticFactor = quadFactor;
+	attenPtr->pad = 0.0f;
+	deviceContext->Unmap(attenuationBuffer, 0);
+	deviceContext->PSSetConstantBuffers(1, 1, &attenuationBuffer);
 
 	// Set shader texture resource for height map in domain shader.
 	deviceContext->DSSetShaderResources(0, 1, &heightTex);
