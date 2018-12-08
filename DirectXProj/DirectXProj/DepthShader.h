@@ -1,4 +1,4 @@
-// Colour shader.h
+// Depth Shader.h
 // Simple shader example.
 #pragma once
 
@@ -6,7 +6,6 @@
 
 using namespace std;
 using namespace DirectX;
-
 
 class DepthShader : public BaseShader
 {
@@ -22,5 +21,6 @@ private:
 	void initShader(WCHAR*, WCHAR*);
 
 private:
+	// Matrix buffers
 	ID3D11Buffer* matrixBuffer;
 };

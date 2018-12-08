@@ -1,4 +1,4 @@
-// Tessellation Depth.ps
+// Tessellation Depth pixel shader
 // Returns the depth value for tessellated shapes.
 
 struct InputType

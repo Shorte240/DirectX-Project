@@ -1,39 +1,52 @@
-// tessellation depth shader.cpp
+// tessellation Depth Shader.cpp
 #include "DisplacementDepthShader.h"
 
 DisplacementDepthShader::DisplacementDepthShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
 	// Quad tessellation
+	// Uses the same vs, hs and ps as the tessellation depth shader
+	// With a different ds for height map calculations
 	initShader(L"tessellation_vs.cso", L"tessellation_hs.cso", L"displacementDepth_ds.cso", L"tessellationDepth_ps.cso");
 }
 
 DisplacementDepthShader::~DisplacementDepthShader()
 {
+	// Release the sampler state.
 	if (sampleState)
 	{
 		sampleState->Release();
 		sampleState = 0;
 	}
+
+	// Release the matrix buffer.
 	if (matrixBuffer)
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
 	}
+
+	// Release the layout.
 	if (layout)
 	{
 		layout->Release();
 		layout = 0;
 	}
+
+	// Release the tessellation buffer.
 	if (tessellationBuffer)
 	{
 		tessellationBuffer->Release();
 		tessellationBuffer = 0;
 	}
+
+	// Release the time buffer.
 	if (timeBuffer)
 	{
 		timeBuffer->Release();
 		timeBuffer = 0;
 	}
+
+	// Release the camera buffer.
 	if (cameraBuffer)
 	{
 		cameraBuffer->Release();
@@ -56,7 +69,7 @@ void DisplacementDepthShader::initShader(WCHAR * vsFilename, WCHAR * psFilename)
 	loadVertexShader(vsFilename);
 	loadPixelShader(psFilename);
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	// Setup the description of the dynamic matrix constant buffer that is in the domain shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -126,6 +139,24 @@ void DisplacementDepthShader::setShaderParameters(ID3D11DeviceContext* deviceCon
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
+	// Send camera position to vertex shader
+	CameraBufferType* camPtr;
+	deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	camPtr = (CameraBufferType*)mappedResource.pData;
+	camPtr->cameraPos = camPos;
+	camPtr->pad = 1.0f;
+	deviceContext->Unmap(cameraBuffer, 0);
+	deviceContext->VSSetConstantBuffers(0, 1, &cameraBuffer);
+
+	// Send tessellation data to hull shader
+	TessellationBufferType* tesPtr;
+	deviceContext->Map(tessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	tesPtr = (TessellationBufferType*)mappedResource.pData;
+	tesPtr->tessellationFactor = tessFactor;
+	tesPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	deviceContext->Unmap(tessellationBuffer, 0);
+	deviceContext->HSSetConstantBuffers(0, 1, &tessellationBuffer);
+
 	// Transpose the matrices to prepare them for the shader.
 	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
 	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
@@ -149,25 +180,7 @@ void DisplacementDepthShader::setShaderParameters(ID3D11DeviceContext* deviceCon
 	deviceContext->Unmap(timeBuffer, 0);
 	deviceContext->DSSetConstantBuffers(1, 1, &timeBuffer);
 
-	//Additional
-	// Send tessellation data to hull shader
-	TessellationBufferType* tesPtr;
-	deviceContext->Map(tessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	tesPtr = (TessellationBufferType*)mappedResource.pData;
-	tesPtr->tessellationFactor = tessFactor;
-	tesPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	deviceContext->Unmap(tessellationBuffer, 0);
-	deviceContext->HSSetConstantBuffers(0, 1, &tessellationBuffer);
-
-	// Send camera position to vertex shader
-	CameraBufferType* camPtr;
-	deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	camPtr = (CameraBufferType*)mappedResource.pData;
-	camPtr->cameraPos = camPos;
-	camPtr->pad = 1.0f;
-	deviceContext->Unmap(cameraBuffer, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, &cameraBuffer);
-
+	// Set shader texture and sampler in the domain shader.
 	deviceContext->DSSetShaderResources(0, 1, &texture);
 	deviceContext->DSSetSamplers(0, 1, &sampleState);
 

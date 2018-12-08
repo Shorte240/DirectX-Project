@@ -1,3 +1,5 @@
+// Shadow pixel shader
+// Used to display shadows on the plane in the scene
 
 Texture2D shaderTexture : register(t0);
 Texture2D depthMapTexture : register(t1);
@@ -64,6 +66,8 @@ float4 main(InputType input) : SV_TARGET
 	// Calculate the projected texture coordinates.
     for (int i = 0; i < 3; i++)
     {
+		// Calculate the pixel texture coordinates and convert them to
+		// 0 - 1 range
         float2 pTexCoord = input.lightViewPos[i].xy / input.lightViewPos[i].w;
         pTexCoord *= float2(0.5, -0.5);
         pTexCoord += float2(0.5f, 0.5f);
@@ -85,6 +89,7 @@ float4 main(InputType input) : SV_TARGET
 			{
 				depthValue = depthMapTexture3.Sample(shadowSampler, pTexCoord).r;
 			}
+
 	        // Calculate the depth from the light.
             lightDepthValue = input.lightViewPos[i].z / input.lightViewPos[i].w;
             lightDepthValue -= shadowMapBias;
@@ -94,6 +99,7 @@ float4 main(InputType input) : SV_TARGET
             {
 				if (i < 2)
 				{
+					// Calculate the colour of the directional lights
 					colour += calculateLighting(-direction[i].xyz, input.normal, diffuse[i]);
 				}
 				else
@@ -119,6 +125,7 @@ float4 main(InputType input) : SV_TARGET
 		{
 			if (i < 2)
 			{
+				// Calculate the colour of the directional lights
 				colour += calculateLighting(-direction[i].xyz, input.normal, diffuse[i]);
 			}
 			else

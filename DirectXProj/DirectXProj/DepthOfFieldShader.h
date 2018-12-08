@@ -1,4 +1,6 @@
-// Depth of field shader
+// Depth Of Field Shader.h
+// Using the vertical and horizontal blur shaders
+// Creates a depth of field post processing effect on the scene.
 
 #pragma once
 
@@ -27,8 +29,13 @@ private:
 	void initShader(WCHAR*, WCHAR*);
 
 private:
+	// Matrix buffers
 	ID3D11Buffer * matrixBuffer;
+
+	// Sampler states
 	ID3D11SamplerState* sampleState;
+
+	// Variable buffers
 	ID3D11Buffer* depthBuffer;
 };
 

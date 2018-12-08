@@ -1,3 +1,6 @@
+// Tessellated Sphere Mesh.cpp
+// Largely the same as the OpenGL code I used for rendering a sphere
+
 #include "TessellatedSphereMesh.h"
 
 #define PI 3.14159265

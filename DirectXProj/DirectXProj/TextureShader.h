@@ -1,3 +1,7 @@
+// Texture Shader.h
+// Same as the one used in the labs
+// Used to apply render textures to orthomeshes.
+
 #pragma once
 
 #include "BaseShader.h"
@@ -17,7 +21,10 @@ private:
 	void initShader(WCHAR*, WCHAR*);
 
 private:
+	// Matrix Buffers
 	ID3D11Buffer * matrixBuffer;
+
+	// Sampler states
 	ID3D11SamplerState* sampleState;
 };
 

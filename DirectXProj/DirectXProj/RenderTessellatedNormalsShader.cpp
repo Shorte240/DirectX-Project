@@ -9,26 +9,35 @@ RenderTessellatedNormalsShader::RenderTessellatedNormalsShader(ID3D11Device* dev
 
 RenderTessellatedNormalsShader::~RenderTessellatedNormalsShader()
 {
+	// Release the matrix buffer
 	if (matrixBuffer)
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
 	}
+
+	// Release the layout
 	if (layout)
 	{
 		layout->Release();
 		layout = 0;
 	}
+
+	// Release the tessellation buffer
 	if (tessellationBuffer)
 	{
 		tessellationBuffer->Release();
 		tessellationBuffer = 0;
 	}
+
+	// Release the time buffer
 	if (timeBuffer)
 	{
 		timeBuffer->Release();
 		timeBuffer = 0;
 	}
+
+	// Release the camera buffer
 	if (cameraBuffer)
 	{
 		cameraBuffer->Release();
@@ -50,7 +59,7 @@ void RenderTessellatedNormalsShader::initShader(WCHAR* vsFilename, WCHAR* psFile
 	loadVertexShader(vsFilename);
 	loadPixelShader(psFilename);
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	// Setup the description of the dynamic matrix constant buffer that is in the domain shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -115,7 +124,6 @@ void RenderTessellatedNormalsShader::setShaderParameters(ID3D11DeviceContext* de
 	deviceContext->Unmap(cameraBuffer, 0);
 	deviceContext->VSSetConstantBuffers(0, 1, &cameraBuffer);
 
-	//Additional
 	// Send tessellation data to hull shader
 	TessellationBufferType* tesPtr;
 	deviceContext->Map(tessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

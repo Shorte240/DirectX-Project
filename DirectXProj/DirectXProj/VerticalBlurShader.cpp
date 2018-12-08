@@ -9,21 +9,28 @@ VerticalBlurShader::VerticalBlurShader(ID3D11Device* device, HWND hwnd) : BaseSh
 
 VerticalBlurShader::~VerticalBlurShader()
 {
+	// Release the sample state
 	if (sampleState)
 	{
 		sampleState->Release();
 		sampleState = 0;
 	}
+
+	// Release the matrix buffer
 	if (matrixBuffer)
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
 	}
+
+	// Release the layout
 	if (layout)
 	{
 		layout->Release();
 		layout = 0;
 	}
+
+	// Release the screen size buffer
 	if (screenSizeBuffer)
 	{
 		screenSizeBuffer->Release();
@@ -70,7 +77,7 @@ void VerticalBlurShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	renderer->CreateSamplerState(&samplerDesc, &sampleState);
 
-	// Setup the description of the screen size.
+	// Setup the description of the screen size buffer.
 	screenSizeBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	screenSizeBufferDesc.ByteWidth = sizeof(ScreenSizeBufferType);
 	screenSizeBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -93,6 +100,7 @@ void VerticalBlurShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	tview = XMMatrixTranspose(viewMatrix);
 	tproj = XMMatrixTranspose(projectionMatrix);
 
+	// Send matrix data to the pixel shader
 	deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 	dataPtr->world = tworld;// worldMatrix;
@@ -101,7 +109,6 @@ void VerticalBlurShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->Unmap(matrixBuffer, 0);
 	deviceContext->VSSetConstantBuffers(0, 1, &matrixBuffer);
 
-	//Additional
 	// Send light data to pixel shader
 	ScreenSizeBufferType* widthPtr;
 	deviceContext->Map(screenSizeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

@@ -1,4 +1,4 @@
-// tessellation depth shader.cpp
+// Tessellation Depth Shader.cpp
 #include "TessellationDepthShader.h"
 
 TessellationDepthShader::TessellationDepthShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
@@ -9,31 +9,42 @@ TessellationDepthShader::TessellationDepthShader(ID3D11Device* device, HWND hwnd
 
 TessellationDepthShader::~TessellationDepthShader()
 {
+	// Release the sampler state.
 	if (sampleState)
 	{
 		sampleState->Release();
 		sampleState = 0;
 	}
+
+	// Release the matrix buffer.
 	if (matrixBuffer)
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
 	}
+
+	// Release the layout.
 	if (layout)
 	{
 		layout->Release();
 		layout = 0;
 	}
+
+	// Release the tessellation buffer.
 	if (tessellationBuffer)
 	{
 		tessellationBuffer->Release();
 		tessellationBuffer = 0;
 	}
+
+	// Release the time buffer.
 	if (timeBuffer)
 	{
 		timeBuffer->Release();
 		timeBuffer = 0;
 	}
+
+	// Release the camera buffer.
 	if (cameraBuffer)
 	{
 		cameraBuffer->Release();
@@ -56,7 +67,7 @@ void TessellationDepthShader::initShader(WCHAR * vsFilename, WCHAR * psFilename)
 	loadVertexShader(vsFilename);
 	loadPixelShader(psFilename);
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	// Setup the description of the dynamic matrix constant buffer that is in the domain shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -131,6 +142,24 @@ void TessellationDepthShader::setShaderParameters(ID3D11DeviceContext* deviceCon
 	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
 	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
 
+	// Send camera position to vertex shader
+	CameraBufferType* camPtr;
+	deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	camPtr = (CameraBufferType*)mappedResource.pData;
+	camPtr->cameraPos = camPos;
+	camPtr->pad = 1.0f;
+	deviceContext->Unmap(cameraBuffer, 0);
+	deviceContext->VSSetConstantBuffers(0, 1, &cameraBuffer);
+
+	// Send tessellation data to hull shader
+	TessellationBufferType* tesPtr;
+	deviceContext->Map(tessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	tesPtr = (TessellationBufferType*)mappedResource.pData;
+	tesPtr->tessellationFactor = tessFactor;
+	tesPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	deviceContext->Unmap(tessellationBuffer, 0);
+	deviceContext->HSSetConstantBuffers(0, 1, &tessellationBuffer);
+
 	// Lock the constant buffer so it can be written to.
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	MatrixBufferType* dataPtr = (MatrixBufferType*)mappedResource.pData;
@@ -151,26 +180,7 @@ void TessellationDepthShader::setShaderParameters(ID3D11DeviceContext* deviceCon
 	deviceContext->Unmap(timeBuffer, 0);
 	deviceContext->DSSetConstantBuffers(1, 1, &timeBuffer);
 
-	//Additional
-	// Send tessellation data to hull shader
-	TessellationBufferType* tesPtr;
-	deviceContext->Map(tessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	tesPtr = (TessellationBufferType*)mappedResource.pData;
-	tesPtr->tessellationFactor = tessFactor;
-	tesPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	deviceContext->Unmap(tessellationBuffer, 0);
-	deviceContext->HSSetConstantBuffers(0, 1, &tessellationBuffer);
-
-	// Send camera position to vertex shader
-	CameraBufferType* camPtr;
-	deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	camPtr = (CameraBufferType*)mappedResource.pData;
-	camPtr->cameraPos = camPos;
-	camPtr->pad = 1.0f;
-	deviceContext->Unmap(cameraBuffer, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, &cameraBuffer);
-
-	// Set shader texture resource in the pixel shader.
+	// Set shader texture resource and sampler in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 	deviceContext->PSSetSamplers(0, 1, &sampleState);
 }

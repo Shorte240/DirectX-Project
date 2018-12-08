@@ -1,7 +1,5 @@
+// Render Tessellated Normals Shader.cpp
 #include "RenderDisplacementNormalsShader.h"
-
-// RenderTessellatedNormalsShader.cpp
-#include "RenderTessellatedNormalsShader.h"
 
 RenderDisplacementNormalsShader::RenderDisplacementNormalsShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
@@ -17,31 +15,43 @@ RenderDisplacementNormalsShader::~RenderDisplacementNormalsShader()
 		sampleState->Release();
 		sampleState = 0;
 	}
+
+	// Release the matrix buffer.
 	if (matrixBuffer)
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
 	}
+
+	// Release the layout.
 	if (layout)
 	{
 		layout->Release();
 		layout = 0;
 	}
+
+	// Release the tessellation buffer.
 	if (tessellationBuffer)
 	{
 		tessellationBuffer->Release();
 		tessellationBuffer = 0;
 	}
+
+	// Release the height buffer.
 	if (heightBuffer)
 	{
 		heightBuffer->Release();
 		heightBuffer = 0;
 	}
+
+	// Release the timer buffer.
 	if (timeBuffer)
 	{
 		timeBuffer->Release();
 		timeBuffer = 0;
 	}
+
+	// Release the camera buffer.
 	if (cameraBuffer)
 	{
 		cameraBuffer->Release();
@@ -65,7 +75,7 @@ void RenderDisplacementNormalsShader::initShader(WCHAR* vsFilename, WCHAR* psFil
 	loadVertexShader(vsFilename);
 	loadPixelShader(psFilename);
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
+	// Setup the description of the dynamic matrix constant buffer that is in the domain shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
 	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -184,7 +194,7 @@ void RenderDisplacementNormalsShader::setShaderParameters(ID3D11DeviceContext* d
 	deviceContext->Unmap(heightBuffer, 0);
 	deviceContext->DSSetConstantBuffers(1, 1, &heightBuffer);
 
-	// Set shader texture resource for height map in domain shader.
+	// Set shader texture resource and sampler for height map in domain shader.
 	deviceContext->DSSetShaderResources(0, 1, &heightTex);
 	deviceContext->DSSetSamplers(0, 1, &sampleState);
 }

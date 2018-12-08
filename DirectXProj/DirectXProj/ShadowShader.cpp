@@ -1,35 +1,48 @@
-// texture shader.cpp
+// Shadow Shader.cpp
 #include "shadowshader.h"
-
 
 ShadowShader::ShadowShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
 	initShader(L"shadow_vs.cso", L"shadow_ps.cso");
 }
 
-
 ShadowShader::~ShadowShader()
 {
+	// Release the sampler state.
 	if (sampleState)
 	{
 		sampleState->Release();
 		sampleState = 0;
 	}
+
+	// Release the shadow sampler.
+	if (sampleStateShadow)
+	{
+		sampleStateShadow->Release();
+		sampleStateShadow = 0;
+	}
+
+	// Release the matrix constant buffer.
 	if (matrixBuffer)
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
 	}
+
+	// Release the layout.
 	if (layout)
 	{
 		layout->Release();
 		layout = 0;
 	}
+
+	// Release the light constant buffer.
 	if (lightBuffer)
 	{	
 		lightBuffer->Release();
 		lightBuffer = 0;
 	}
+
 	// Release the attenuation constant buffer.
 	if (attenuationBuffer)
 	{
@@ -121,7 +134,8 @@ void ShadowShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const
 	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
 	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
 	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
-	// TO DO: INCLUDE ALL LIGHT VIEW AND ORTHO MATRICES
+
+	// Transpose all the light matrices to prepare them for the shader.
 	XMMATRIX tLightViewMatrix = XMMatrixTranspose(lights[0]->getViewMatrix());
 	XMMATRIX tLightProjectionMatrix = XMMatrixTranspose(lights[0]->getOrthoMatrix());
 	XMMATRIX tLightViewMatrix2 = XMMatrixTranspose(lights[1]->getViewMatrix());
@@ -130,6 +144,7 @@ void ShadowShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const
 	XMMATRIX tLightProjectionMatrix3 = XMMatrixTranspose(lights[2]->getOrthoMatrix());
 	
 	// Lock the constant buffer so it can be written to.
+	// Send all the light matrix data to the vertex shader.
 	deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 	dataPtr->world = tworld;// worldMatrix;
@@ -144,7 +159,6 @@ void ShadowShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const
 	deviceContext->Unmap(matrixBuffer, 0);
 	deviceContext->VSSetConstantBuffers(0, 1, &matrixBuffer);
 
-	//Additional
 	// Send light data to pixel shader
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;

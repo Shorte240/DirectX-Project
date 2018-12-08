@@ -66,6 +66,8 @@ float4 main(InputType input) : SV_TARGET
 	// Calculate the projected texture coordinates.
 	for (int i = 0; i < 3; i++)
 	{
+		// Calculate the pixel texture coordinates and convert them to
+		// 0 - 1 range
 		float2 pTexCoord = input.lightViewPos[i].xy / input.lightViewPos[i].w;
 		pTexCoord *= float2(0.5, -0.5);
 		pTexCoord += float2(0.5f, 0.5f);

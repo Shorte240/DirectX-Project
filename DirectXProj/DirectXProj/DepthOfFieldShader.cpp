@@ -1,4 +1,4 @@
-// Depth of field shader
+// Depth Of Field Shader.cpp
 
 #include "DepthOfFieldShader.h"
 
@@ -9,21 +9,28 @@ DepthOfFieldShader::DepthOfFieldShader(ID3D11Device* device, HWND hwnd) : BaseSh
 
 DepthOfFieldShader::~DepthOfFieldShader()
 {
+	// Release the sampler state.
 	if (sampleState)
 	{
 		sampleState->Release();
 		sampleState = 0;
 	}
+
+	// Release the matrix buffer.
 	if (matrixBuffer)
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
 	}
+
+	// Release the layout.
 	if (layout)
 	{
 		layout->Release();
 		layout = 0;
 	}
+
+	// Release the depth buffer.
 	if (depthBuffer)
 	{
 		depthBuffer->Release();
@@ -69,7 +76,7 @@ void DepthOfFieldShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	renderer->CreateSamplerState(&samplerDesc, &sampleState);
 
-	// Setup the description of the screen size.
+	// Setup depth buffer description.
 	depthBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	depthBufferDesc.ByteWidth = sizeof(DepthBufferType);
 	depthBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -90,6 +97,7 @@ void DepthOfFieldShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	tview = XMMatrixTranspose(viewMatrix);
 	tproj = XMMatrixTranspose(projectionMatrix);
 
+	// Send matrix data to the vertex shader.
 	deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 	dataPtr->world = tworld;// worldMatrix;
@@ -98,7 +106,6 @@ void DepthOfFieldShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->Unmap(matrixBuffer, 0);
 	deviceContext->VSSetConstantBuffers(0, 1, &matrixBuffer);
 
-	//Additional
 	// Send light data to pixel shader
 	DepthBufferType* depthPtr;
 	deviceContext->Map(depthBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);

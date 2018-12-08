@@ -1,3 +1,6 @@
+// Shadow vertex shader
+// Largely if not exactly the same shader as used in the lab.
+// Only used on the plane in the scene.
 
 cbuffer MatrixBuffer : register(b0)
 {
@@ -42,10 +45,14 @@ OutputType main(InputType input)
         output.lightViewPos[i] = mul(output.lightViewPos[i], lightProjectionMatrix[i]);
     }
 
+	// Set the output texture coordinates
     output.tex = input.tex;
+
+	// Calculate the normals
     output.normal = mul(input.normal, (float3x3)worldMatrix);
     output.normal = normalize(output.normal);
 
+	// Calculate the world position
 	output.worldPosition = mul(input.position, worldMatrix).xyz;
 
 	return output;

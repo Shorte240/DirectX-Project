@@ -1,12 +1,11 @@
-// depth shader.cpp
+// Depth Shader.cpp
+// Used to do a depth pass on the plane in the scene.
 #include "depthshader.h"
-
 
 DepthShader::DepthShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
 	initShader(L"depth_vs.cso", L"depth_ps.cso");
 }
-
 
 DepthShader::~DepthShader()
 {
@@ -28,7 +27,6 @@ DepthShader::~DepthShader()
 	BaseShader::~BaseShader();
 }
 
-
 void DepthShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 {
 	D3D11_BUFFER_DESC matrixBufferDesc;
@@ -45,9 +43,7 @@ void DepthShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
-
 }
-
 
 void DepthShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix)
 {

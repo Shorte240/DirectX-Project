@@ -1,5 +1,5 @@
-// Light shader.h
-// Basic single light shader setup
+// Shadow Shader.h
+// Multiple light shader setup
 #ifndef _SHADOWSHADER_H_
 #define _SHADOWSHADER_H_
 
@@ -51,9 +51,14 @@ private:
 	void initShader(WCHAR*, WCHAR*);
 
 private:
+	// Matrix buffers
 	ID3D11Buffer* matrixBuffer;
+
+	// Sampler states
 	ID3D11SamplerState* sampleState;
 	ID3D11SamplerState* sampleStateShadow;
+
+	// Variable buffers
 	ID3D11Buffer* lightBuffer;
 	ID3D11Buffer* attenuationBuffer;
 };

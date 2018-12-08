@@ -1,6 +1,6 @@
 // App1.cpp
 // Project showcasing Vertex Manipulation, Tessellation, Post Processing
-// Lighting and Shadows, Geometry Shader
+// Lighting and Shadows and use of the Geometry Shader
 #include "App1.h"
 
 App1::App1()
@@ -154,7 +154,6 @@ App1::~App1()
 	// Release the Direct3D object.
 
 }
-
 
 bool App1::frame()
 {

@@ -1,4 +1,4 @@
-// RenderDisplacementNormalsShader.h
+// Render Displacement Normals Shader.h
 // Used to render the normals of displacement based tessellated shapes.
 #pragma once
 
@@ -48,8 +48,13 @@ private:
 	void initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR* dsFilename, WCHAR* gsFilename, WCHAR* psFilename);
 
 private:
+	// Matrix buffers
 	ID3D11Buffer * matrixBuffer;
+
+	// Sampler states
 	ID3D11SamplerState* sampleState;
+
+	// Variable buffers
 	ID3D11Buffer* tessellationBuffer;
 	ID3D11Buffer* timeBuffer;
 	ID3D11Buffer* cameraBuffer;

@@ -1,30 +1,35 @@
-// Horizontal blur shader
+// Horizontal Blur Shader.cpp
 #include "horizontalblurshader.h"
-
 
 HorizontalBlurShader::HorizontalBlurShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
 	initShader(L"horizontalBlur_vs.cso", L"horizontalBlur_ps.cso");
 }
 
-
 HorizontalBlurShader::~HorizontalBlurShader()
 {
+	// Release the sampler state.
 	if (sampleState)
 	{
 		sampleState->Release();
 		sampleState = 0;
 	}
+
+	// Release the matrix buffer.
 	if (matrixBuffer)
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
 	}
+
+	// Release the layout.
 	if (layout)
 	{
 		layout->Release();
 		layout = 0;
 	}
+
+	// Release the screen size buffer.
 	if (screenSizeBuffer)
 	{
 		screenSizeBuffer->Release();
@@ -79,9 +84,7 @@ void HorizontalBlurShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	screenSizeBufferDesc.MiscFlags = 0;
 	screenSizeBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&screenSizeBufferDesc, NULL, &screenSizeBuffer);
-
 }
-
 
 void HorizontalBlurShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* texture, float width)
 {
@@ -94,6 +97,7 @@ void HorizontalBlurShader::setShaderParameters(ID3D11DeviceContext* deviceContex
 	tview = XMMatrixTranspose(viewMatrix);
 	tproj = XMMatrixTranspose(projectionMatrix);
 
+	// Send matrix data to the vertex shader
 	deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 	dataPtr->world = tworld;// worldMatrix;
@@ -102,7 +106,6 @@ void HorizontalBlurShader::setShaderParameters(ID3D11DeviceContext* deviceContex
 	deviceContext->Unmap(matrixBuffer, 0);
 	deviceContext->VSSetConstantBuffers(0, 1, &matrixBuffer);
 
-	//Additional
 	// Send light data to pixel shader
 	ScreenSizeBufferType* widthPtr;
 	deviceContext->Map(screenSizeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
