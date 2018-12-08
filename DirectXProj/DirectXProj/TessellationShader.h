@@ -1,4 +1,4 @@
-// Tessellation shader.h
+// Tessellation Shader.h
 // Tessellation setup
 #pragma once
 
@@ -42,7 +42,7 @@ private:
 		XMFLOAT3 padding;
 	};
 
-	struct MatrixBufferType2
+	struct LightMatrixBufferType
 	{
 		XMMATRIX lightView[3];
 		XMMATRIX lightProjection[3];
@@ -68,10 +68,15 @@ private:
 	void initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR* dsFilename, WCHAR* gsFilename, WCHAR* psFilename);
 
 private:
+	// Matrix buffers
 	ID3D11Buffer * matrixBuffer;
-	ID3D11Buffer* matrixBuffer2;
+	ID3D11Buffer* lightMatrixBuffer;
+
+	// Sample states
 	ID3D11SamplerState* sampleState;
 	ID3D11SamplerState* sampleStateShadow;
+
+	// Variable buffers
 	ID3D11Buffer* tessellationBuffer;
 	ID3D11Buffer* timeBuffer;
 	ID3D11Buffer* cameraBuffer;

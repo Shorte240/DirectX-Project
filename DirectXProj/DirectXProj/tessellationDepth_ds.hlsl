@@ -27,7 +27,6 @@ struct InputType
 	float3 position : POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-	float3 colour : COLOR;
 };
 
 struct OutputType
@@ -39,9 +38,11 @@ struct OutputType
 [domain("quad")]
 OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, const OutputPatch<InputType, 4> patch)
 {
+	OutputType output;
+
+	// Temp variables to calculate specific components.
 	float3 vertexPosition, vertexNormal;
 	float2 vertexTexCoords;
-	OutputType output;
 
 	// Determine the position of the new vertex.
 	float3 v1 = lerp(patch[0].position, patch[1].position, uvwCoord.y);

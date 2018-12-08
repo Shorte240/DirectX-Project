@@ -1,5 +1,5 @@
-// Displacement Shader
-// Takes in a displacement map and alters a given shape accordingly.
+// Displacement Shader.h
+// Takes in a displacement map and alters a tessellated shape accordingly.
 
 #pragma once
 
@@ -41,7 +41,7 @@ private:
 		XMFLOAT3 padding;
 	};
 
-	struct MatrixBufferType2
+	struct LightMatrixBufferType
 	{
 		XMMATRIX lightView[3];
 		XMMATRIX lightProjection[3];
@@ -66,9 +66,14 @@ private:
 	void initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR* dsFilename, WCHAR* psFilename);
 
 private:
+	// Matrix buffers
 	ID3D11Buffer * matrixBuffer;
-	ID3D11Buffer* matrixBuffer2;
+	ID3D11Buffer* lightMatrixBuffer;
+
+	// Sample states
 	ID3D11SamplerState* sampleState;
+
+	// Variable buffers
 	ID3D11Buffer* lightBuffer;
 	ID3D11Buffer* heightBuffer;
 	ID3D11Buffer* tessellationBuffer;

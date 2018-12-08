@@ -48,9 +48,11 @@ struct OutputType
 [domain("quad")]
 OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, const OutputPatch<InputType, 4> patch)
 {
+    OutputType output;
+
+	// Temp variables to calculate specific components.
     float3 vertexPosition, vertexNormal;
     float2 vertexTexCoords;
-    OutputType output;
 
 	// Determine the position of the new vertex.
     float3 v1 = lerp(patch[0].position, patch[1].position, uvwCoord.y);
@@ -84,6 +86,7 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     output.normal = mul(vertexNormal, (float3x3) worldMatrix);
     output.normal = normalize(output.normal);
 
+	// Calculate the position of the vertice as viewed by the light source.
 	for (int i = 0; i < 3; i++)
 	{
 		output.lightViewPos[i] = mul(float4(vertexPosition, 1.0f), worldMatrix);
@@ -91,6 +94,7 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
 		output.lightViewPos[i] = mul(output.lightViewPos[i], lightProjectionMatrix[i]);
 	}
 
+	// Calculate the world position of the vertice.
 	output.worldPosition = mul(float4(vertexPosition, 1.0f), worldMatrix).xyz;
 
     return output;

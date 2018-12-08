@@ -39,9 +39,11 @@ struct OutputType
 [domain("quad")]
 OutputType main(ConstantOutputType input, float2 uvCoord : SV_DomainLocation, const OutputPatch<InputType, 4> patch)
 {
+	OutputType output;
+
+	// Temp variables to calculate specific components.
 	float3 vertexPosition, vertexNormal;
 	float2 vertexTexCoords;
-	OutputType output;
 
 	// Determine the position of the new vertex.
 	float3 v1 = lerp(patch[0].position, patch[1].position, uvCoord.y);
@@ -67,10 +69,8 @@ OutputType main(ConstantOutputType input, float2 uvCoord : SV_DomainLocation, co
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);
 
-	//// Calculate the normal vector against the world matrix only and normalise.
+	// Calculate the normal vector against the world matrix only and normalise.
 	output.normal = mul(vertexNormal, (float3x3) worldMatrix);
-	output.normal = mul(output.normal, viewMatrix);
-	output.normal = mul(output.normal, projectionMatrix);
 	output.normal = normalize(output.normal);
 
 	return output;

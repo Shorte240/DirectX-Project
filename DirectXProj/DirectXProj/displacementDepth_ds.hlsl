@@ -40,9 +40,11 @@ struct OutputType
 [domain("quad")]
 OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, const OutputPatch<InputType, 4> patch)
 {
+    OutputType output;
+
+	// Temp variables to calculate specific components.
     float3 vertexPosition, vertexNormal;
     float2 vertexTexCoords;
-    OutputType output;
 
 	// Determine the position of the new vertex.
     float3 v1 = lerp(patch[0].position, patch[1].position, uvwCoord.y);
@@ -60,7 +62,7 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     vertexNormal = lerp(n1, n2, uvwCoord.x);
 
 	// Offset position based on sine wave
-    // Sample the texture. Use colour to alter height of plane.
+    // Sample the texture. Use colour to alter height of the sphere.
     float4 textureColour = heightTex.SampleLevel(sampler0, vertexTexCoords, 0, 0);
     vertexPosition += vertexNormal * (textureColour.r * height);
 

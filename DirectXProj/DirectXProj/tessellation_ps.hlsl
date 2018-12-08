@@ -1,5 +1,5 @@
 // Tessellation pixel shader
-// Output colour passed to stage.
+// Calculates all the lighting for the tessellated shapes.
 
 Texture2D shaderTexture : register(t0);
 Texture2D depthMapTexture : register(t1);
@@ -95,6 +95,7 @@ float4 main(InputType input) : SV_TARGET
 			{
 				if (i < 2)
 				{
+					// Light calculations for directional lights
 					colour += calculateLighting(-direction[i].xyz, input.normal, diffuse[i]);
 				}
 				else
@@ -120,6 +121,7 @@ float4 main(InputType input) : SV_TARGET
 		{
 			if (i < 2)
 			{
+				// Light calculations for directional lights
 				colour += calculateLighting(-direction[i].xyz, input.normal, diffuse[i]);
 			}
 			else

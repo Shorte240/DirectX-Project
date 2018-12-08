@@ -1,6 +1,5 @@
-// tessellation shader.cpp
+// Tessellation shader.cpp
 #include "tessellationshader.h"
-
 
 TessellationShader::TessellationShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
@@ -8,44 +7,76 @@ TessellationShader::TessellationShader(ID3D11Device* device, HWND hwnd) : BaseSh
 	initShader(L"tessellation_vs.cso", L"tessellation_hs.cso", L"tessellation_ds.cso", L"tessellation_gs.cso", L"tessellation_ps.cso");
 }
 
-
 TessellationShader::~TessellationShader()
 {
+	// Release the sample state
 	if (sampleState)
 	{
 		sampleState->Release();
 		sampleState = 0;
 	}
+
+	// Release the shadow sample state
+	if (sampleStateShadow)
+	{
+		sampleStateShadow->Release();
+		sampleStateShadow = 0;
+	}
+
+	// Release the matrix buffer
 	if (matrixBuffer)
 	{
 		matrixBuffer->Release();
 		matrixBuffer = 0;
 	}
+
+	// Release the light matrix buffer.
+	if (lightMatrixBuffer)
+	{
+		lightMatrixBuffer->Release();
+		lightMatrixBuffer = 0;
+	}
+
+	// Release the layout
 	if (layout)
 	{
 		layout->Release();
 		layout = 0;
 	}
+
+	// Release the tessellation buffer
 	if (tessellationBuffer)
 	{
 		tessellationBuffer->Release();
 		tessellationBuffer = 0;
 	}
+
+	// Release the time buffer
 	if (timeBuffer)
 	{
 		timeBuffer->Release();
 		timeBuffer = 0;
 	}
+
+	// Release the camera buffer
 	if (cameraBuffer)
 	{
 		cameraBuffer->Release();
 		cameraBuffer = 0;
 	}
+
 	// Release the attenuation constant buffer.
 	if (attenuationBuffer)
 	{
 		attenuationBuffer->Release();
 		attenuationBuffer = 0;
+	}
+
+	// Release the light buffer
+	if (lightBuffer)
+	{
+		lightBuffer->Release();
+		lightBuffer = 0;
 	}
 
 	//Release base shader components
@@ -54,9 +85,11 @@ TessellationShader::~TessellationShader()
 
 void TessellationShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 {
+	// Buffer and sampler descriptions
 	D3D11_BUFFER_DESC matrixBufferDesc;
-	D3D11_BUFFER_DESC matrixBufferDesc2;
+	D3D11_BUFFER_DESC lightMatrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
+	D3D11_SAMPLER_DESC sampleStateShadowDesc;
 	D3D11_BUFFER_DESC tessellationBufferDesc;
 	D3D11_BUFFER_DESC timeBufferDesc;
 	D3D11_BUFFER_DESC cameraBufferDesc;
@@ -78,16 +111,16 @@ void TessellationShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	matrixBufferDesc2.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc2.ByteWidth = sizeof(MatrixBufferType2);
-	matrixBufferDesc2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc2.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc2.MiscFlags = 0;
-	matrixBufferDesc2.StructureByteStride = 0;
+	// Setup the description of the light matrix buffer that is in the domain shader.
+	lightMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightMatrixBufferDesc.ByteWidth = sizeof(LightMatrixBufferType);
+	lightMatrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightMatrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightMatrixBufferDesc.MiscFlags = 0;
+	lightMatrixBufferDesc.StructureByteStride = 0;
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	renderer->CreateBuffer(&matrixBufferDesc2, NULL, &matrixBuffer2);
+	renderer->CreateBuffer(&lightMatrixBufferDesc, NULL, &lightMatrixBuffer);
 
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -104,6 +137,22 @@ void TessellationShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	renderer->CreateSamplerState(&samplerDesc, &sampleState);
+
+	// Create a shadow map sampler state description.
+	sampleStateShadowDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampleStateShadowDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleStateShadowDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleStateShadowDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampleStateShadowDesc.MipLODBias = 0.0f;
+	sampleStateShadowDesc.MaxAnisotropy = 1;
+	sampleStateShadowDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	sampleStateShadowDesc.BorderColor[0] = 0;
+	sampleStateShadowDesc.BorderColor[1] = 0;
+	sampleStateShadowDesc.BorderColor[2] = 0;
+	sampleStateShadowDesc.BorderColor[3] = 0;
+	sampleStateShadowDesc.MinLOD = 0;
+	sampleStateShadowDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	renderer->CreateSamplerState(&sampleStateShadowDesc, &sampleStateShadow);
 
 	// Setup the description of the tessellation buffer description.
 	tessellationBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -164,7 +213,6 @@ void TessellationShader::initShader(WCHAR* vsFilename, WCHAR* hsFilename, WCHAR*
 	loadGeometryShader(gsFilename);
 }
 
-
 void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* texture, float tessFactor, XMFLOAT4 waveVariables, XMFLOAT3 camPos, ID3D11ShaderResourceView*depthMap, ID3D11ShaderResourceView*depthMap2, ID3D11ShaderResourceView*depthMap3, Light* lights[MAX_LIGHTS], float spotAngle, float constFactor, float linFactor, float quadFactor)
 {
 	HRESULT result, result2;
@@ -175,55 +223,14 @@ void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
 	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
 	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
-	// TO DO: INCLUDE ALL LIGHT VIEW AND ORTHO MATRICES
+	
+	// Transpose all the light matrices to prepare them for the shader.
 	XMMATRIX tLightViewMatrix = XMMatrixTranspose(lights[0]->getViewMatrix());
 	XMMATRIX tLightProjectionMatrix = XMMatrixTranspose(lights[0]->getOrthoMatrix());
 	XMMATRIX tLightViewMatrix2 = XMMatrixTranspose(lights[1]->getViewMatrix());
 	XMMATRIX tLightProjectionMatrix2 = XMMatrixTranspose(lights[1]->getOrthoMatrix());
 	XMMATRIX tLightViewMatrix3 = XMMatrixTranspose(lights[2]->getViewMatrix());
 	XMMATRIX tLightProjectionMatrix3 = XMMatrixTranspose(lights[2]->getOrthoMatrix());
-
-	// Lock the constant buffer so it can be written to.
-	result2 = deviceContext->Map(matrixBuffer2, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	MatrixBufferType2* dataPtr2 = (MatrixBufferType2*)mappedResource.pData;
-	dataPtr2->lightView[0] = tLightViewMatrix;
-	dataPtr2->lightProjection[0] = tLightProjectionMatrix;
-	dataPtr2->lightView[1] = tLightViewMatrix2;
-	dataPtr2->lightProjection[1] = tLightProjectionMatrix2;
-	dataPtr2->lightView[2] = tLightViewMatrix3;
-	dataPtr2->lightProjection[2] = tLightProjectionMatrix3;
-	deviceContext->Unmap(matrixBuffer2, 0);
-	deviceContext->DSSetConstantBuffers(2, 1, &matrixBuffer2);
-
-	// Lock the constant buffer so it can be written to.
-	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	MatrixBufferType* dataPtr = (MatrixBufferType*)mappedResource.pData;
-	dataPtr->world = tworld;// worldMatrix;
-	dataPtr->view = tview;
-	dataPtr->projection = tproj;
-	deviceContext->Unmap(matrixBuffer, 0);
-	deviceContext->DSSetConstantBuffers(0, 1, &matrixBuffer);
-
-	// Send time data to domain shader
-	TimeBufferType* timePtr;
-	deviceContext->Map(timeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	timePtr = (TimeBufferType*)mappedResource.pData;
-	timePtr->time = waveVariables.x;
-	timePtr->height = waveVariables.y;
-	timePtr->frequency = waveVariables.z;
-	timePtr->speed = waveVariables.w;
-	deviceContext->Unmap(timeBuffer, 0);
-	deviceContext->DSSetConstantBuffers(1, 1, &timeBuffer);
-
-	//Additional
-	// Send tessellation data to hull shader
-	TessellationBufferType* tesPtr;
-	deviceContext->Map(tessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	tesPtr = (TessellationBufferType*)mappedResource.pData;
-	tesPtr->tessellationFactor = tessFactor;
-	tesPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	deviceContext->Unmap(tessellationBuffer, 0);
-	deviceContext->HSSetConstantBuffers(0, 1, &tessellationBuffer);
 
 	// Send camera position to vertex shader
 	CameraBufferType* camPtr;
@@ -234,15 +241,49 @@ void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->Unmap(cameraBuffer, 0);
 	deviceContext->VSSetConstantBuffers(0, 1, &cameraBuffer);
 
-	deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	dataPtr = (MatrixBufferType*)mappedResource.pData;
+	// Send tessellation data to hull shader
+	TessellationBufferType* tesPtr;
+	deviceContext->Map(tessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	tesPtr = (TessellationBufferType*)mappedResource.pData;
+	tesPtr->tessellationFactor = tessFactor;
+	tesPtr->padding = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	deviceContext->Unmap(tessellationBuffer, 0);
+	deviceContext->HSSetConstantBuffers(0, 1, &tessellationBuffer);
+
+	// Lock the constant buffer so it can be written to.
+	// Send world, view and projection matrix info to the domain shader.
+	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	MatrixBufferType* dataPtr = (MatrixBufferType*)mappedResource.pData;
 	dataPtr->world = tworld;// worldMatrix;
 	dataPtr->view = tview;
 	dataPtr->projection = tproj;
 	deviceContext->Unmap(matrixBuffer, 0);
-	deviceContext->GSSetConstantBuffers(0, 1, &matrixBuffer);
+	deviceContext->DSSetConstantBuffers(0, 1, &matrixBuffer);
 
-	//Additional
+	// Send wave variable data to domain shader
+	TimeBufferType* timePtr;
+	deviceContext->Map(timeBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	timePtr = (TimeBufferType*)mappedResource.pData;
+	timePtr->time = waveVariables.x;
+	timePtr->height = waveVariables.y;
+	timePtr->frequency = waveVariables.z;
+	timePtr->speed = waveVariables.w;
+	deviceContext->Unmap(timeBuffer, 0);
+	deviceContext->DSSetConstantBuffers(1, 1, &timeBuffer);
+
+	// Lock the constant buffer so it can be written to.
+	// Send light view matrix info to the domain shader.
+	result2 = deviceContext->Map(lightMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	LightMatrixBufferType* dataPtr2 = (LightMatrixBufferType*)mappedResource.pData;
+	dataPtr2->lightView[0] = tLightViewMatrix;
+	dataPtr2->lightProjection[0] = tLightProjectionMatrix;
+	dataPtr2->lightView[1] = tLightViewMatrix2;
+	dataPtr2->lightProjection[1] = tLightProjectionMatrix2;
+	dataPtr2->lightView[2] = tLightViewMatrix3;
+	dataPtr2->lightProjection[2] = tLightProjectionMatrix3;
+	deviceContext->Unmap(lightMatrixBuffer, 0);
+	deviceContext->DSSetConstantBuffers(2, 1, &lightMatrixBuffer);
+	
 	// Send light data to pixel shader
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
@@ -269,7 +310,7 @@ void TessellationShader::setShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->Unmap(attenuationBuffer, 0);
 	deviceContext->PSSetConstantBuffers(1, 1, &attenuationBuffer);
 
-	// Set shader texture resource in the pixel shader.
+	// Set shader texture resource and sample states in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 	deviceContext->PSSetShaderResources(1, 1, &depthMap);
 	deviceContext->PSSetShaderResources(2, 1, &depthMap2);

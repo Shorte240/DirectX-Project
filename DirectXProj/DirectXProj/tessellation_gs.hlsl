@@ -1,9 +1,5 @@
-cbuffer MatrixBuffer : register(b0)
-{
-	matrix worldMatrix;
-	matrix viewMatrix;
-	matrix projectionMatrix;
-};
+// Tessellation geometry shader
+// Simple example of passing data through to pixel shader.
 
 struct InputType
 {
@@ -34,16 +30,18 @@ void main(triangle InputType input[3], inout TriangleStream<OutputType> triStrea
 {
 	OutputType output;
 
+	// Pass all data to the pixel shader.
 	for (int i = 0; i < 3; i++)
 	{
 		output.position = input[i].position;
-		output.normal = input[i].normal;
 		output.tex = input[i].tex;
-		output.lightViewPos[0] = input[i].lightViewPos[0];
-		output.lightViewPos[1] = input[i].lightViewPos[1];
-		output.lightViewPos[2] = input[i].lightViewPos[2];
+		output.normal = input[i].normal;
+		output.lightViewPos[0] = input[0].lightViewPos[0];
+		output.lightViewPos[1] = input[1].lightViewPos[1];
+		output.lightViewPos[2] = input[2].lightViewPos[2];
 		output.worldPosition = input[i].worldPosition;
 		triStream.Append(output);
 	}
+
 	triStream.RestartStrip();
 }

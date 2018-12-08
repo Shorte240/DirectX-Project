@@ -1,8 +1,12 @@
+// Displacement Shader.cpp
+
 #include "DisplacementShader.h"
 
 DisplacementShader::DisplacementShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
 	// Quad tessellation
+	// Uses the same vs, hs and ps as tessellation
+	// With a different ds for manipulating via a height map
 	initShader(L"tessellation_vs.cso", L"tessellation_hs.cso", L"displacement_ds.cso", L"tessellation_ps.cso");
 }
 
@@ -22,6 +26,13 @@ DisplacementShader::~DisplacementShader()
 		matrixBuffer = 0;
 	}
 
+	// Release the light matrix constant buffer.
+	if (lightMatrixBuffer)
+	{
+		lightMatrixBuffer->Release();
+		lightMatrixBuffer = 0;
+	}
+
 	// Release the layout.
 	if (layout)
 	{
@@ -36,18 +47,21 @@ DisplacementShader::~DisplacementShader()
 		lightBuffer = 0;
 	}
 
+	// Release the height constant buffer.
 	if (heightBuffer)
 	{
 		heightBuffer->Release();
 		heightBuffer = 0;
 	}
 
+	// Release the tessellation constant buffer.
 	if (tessellationBuffer)
 	{
 		tessellationBuffer->Release();
 		tessellationBuffer = 0;
 	}
 
+	// Release the camera constant buffer.
 	if (cameraBuffer)
 	{
 		cameraBuffer->Release();
@@ -67,8 +81,9 @@ DisplacementShader::~DisplacementShader()
 
 void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 {
+	// Buffer and sampler descriptions
 	D3D11_BUFFER_DESC matrixBufferDesc;
-	D3D11_BUFFER_DESC matrixBufferDesc2;
+	D3D11_BUFFER_DESC lightMatrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
 	D3D11_BUFFER_DESC lightBufferDesc;
 	D3D11_BUFFER_DESC heightBufferDesc;
@@ -89,16 +104,16 @@ void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	matrixBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
 
-	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	matrixBufferDesc2.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc2.ByteWidth = sizeof(MatrixBufferType2);
-	matrixBufferDesc2.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc2.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc2.MiscFlags = 0;
-	matrixBufferDesc2.StructureByteStride = 0;
+	// Setup the description of the light matrix buffer that is in the domain shader.
+	lightMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightMatrixBufferDesc.ByteWidth = sizeof(LightMatrixBufferType);
+	lightMatrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightMatrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightMatrixBufferDesc.MiscFlags = 0;
+	lightMatrixBufferDesc.StructureByteStride = 0;
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	renderer->CreateBuffer(&matrixBufferDesc2, NULL, &matrixBuffer2);
+	renderer->CreateBuffer(&lightMatrixBufferDesc, NULL, &lightMatrixBuffer);
 
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -123,7 +138,7 @@ void DisplacementShader::initShader(WCHAR* vsFilename, WCHAR* psFilename)
 	lightBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&lightBufferDesc, NULL, &lightBuffer);
 
-	// Setup time buffer
+	// Setup height buffer
 	heightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	heightBufferDesc.ByteWidth = sizeof(HeightBufferType);
 	heightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -179,31 +194,18 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	MatrixBufferType* dataPtr;
 	LightBufferType* lightPtr;
 
-	XMMATRIX tworld, tview, tproj;
-
 	// Transpose the matrices to prepare them for the shader.
-	tworld = XMMatrixTranspose(worldMatrix);
-	tview = XMMatrixTranspose(viewMatrix);
-	tproj = XMMatrixTranspose(projectionMatrix);
-	// TO DO: INCLUDE ALL LIGHT VIEW AND ORTHO MATRICES
+	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
+	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
+	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
+
+	// Transpose all the light matrices to prepare them for the shader.
 	XMMATRIX tLightViewMatrix = XMMatrixTranspose(lights[0]->getViewMatrix());
 	XMMATRIX tLightProjectionMatrix = XMMatrixTranspose(lights[0]->getOrthoMatrix());
 	XMMATRIX tLightViewMatrix2 = XMMatrixTranspose(lights[1]->getViewMatrix());
 	XMMATRIX tLightProjectionMatrix2 = XMMatrixTranspose(lights[1]->getOrthoMatrix());
 	XMMATRIX tLightViewMatrix3 = XMMatrixTranspose(lights[2]->getViewMatrix());
 	XMMATRIX tLightProjectionMatrix3 = XMMatrixTranspose(lights[2]->getOrthoMatrix());
-
-	// Lock the constant buffer so it can be written to.
-	result2 = deviceContext->Map(matrixBuffer2, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	MatrixBufferType2* dataPtr2 = (MatrixBufferType2*)mappedResource.pData;
-	dataPtr2->lightView[0] = tLightViewMatrix;
-	dataPtr2->lightProjection[0] = tLightProjectionMatrix;
-	dataPtr2->lightView[1] = tLightViewMatrix2;
-	dataPtr2->lightProjection[1] = tLightProjectionMatrix2;
-	dataPtr2->lightView[2] = tLightViewMatrix3;
-	dataPtr2->lightProjection[2] = tLightProjectionMatrix3;
-	deviceContext->Unmap(matrixBuffer2, 0);
-	deviceContext->DSSetConstantBuffers(2, 1, &matrixBuffer2);
 
 	// Send camera position to vertex shader
 	CameraBufferType* camPtr;
@@ -223,6 +225,7 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	deviceContext->Unmap(tessellationBuffer, 0);
 	deviceContext->HSSetConstantBuffers(0, 1, &tessellationBuffer);
 
+	// Send matrix data to the domain shader
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 	dataPtr->world = tworld;// worldMatrix;
@@ -231,8 +234,7 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	deviceContext->Unmap(matrixBuffer, 0);
 	deviceContext->DSSetConstantBuffers(0, 1, &matrixBuffer);
 
-	//Additional
-	// Send light data to pixel shader
+	// Send height data to domain shader
 	HeightBufferType* heightPtr;
 	deviceContext->Map(heightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	heightPtr = (HeightBufferType*)mappedResource.pData;
@@ -241,7 +243,19 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	deviceContext->Unmap(heightBuffer, 0);
 	deviceContext->DSSetConstantBuffers(1, 1, &heightBuffer);
 
-	//Additional
+	// Lock the constant buffer so it can be written to.
+	// Send light view matrix info to the domain shader.
+	result2 = deviceContext->Map(lightMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	LightMatrixBufferType* dataPtr2 = (LightMatrixBufferType*)mappedResource.pData;
+	dataPtr2->lightView[0] = tLightViewMatrix;
+	dataPtr2->lightProjection[0] = tLightProjectionMatrix;
+	dataPtr2->lightView[1] = tLightViewMatrix2;
+	dataPtr2->lightProjection[1] = tLightProjectionMatrix2;
+	dataPtr2->lightView[2] = tLightViewMatrix3;
+	dataPtr2->lightProjection[2] = tLightProjectionMatrix3;
+	deviceContext->Unmap(lightMatrixBuffer, 0);
+	deviceContext->DSSetConstantBuffers(2, 1, &lightMatrixBuffer);
+
 	// Send light data to pixel shader
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
