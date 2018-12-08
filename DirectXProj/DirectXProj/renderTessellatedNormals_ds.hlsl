@@ -61,6 +61,8 @@ OutputType main(ConstantOutputType input, float2 uvCoord : SV_DomainLocation, co
 
 	//// Calculate the normal vector against the world matrix only and normalise.
 	output.normal = mul(vertexNormal, (float3x3) worldMatrix);
+	output.normal = mul(output.normal, viewMatrix);
+	output.normal = mul(output.normal, projectionMatrix);
 	output.normal = normalize(output.normal);
 
 	return output;

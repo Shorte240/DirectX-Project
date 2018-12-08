@@ -12,7 +12,6 @@
 #include "HorizontalBlurShader.h"
 #include "VerticalBlurShader.h"
 #include "DepthOfFieldShader.h"
-#include "ReflectionShader.h"
 #include "RenderTessellatedNormalsShader.h"
 #include "RenderDisplacementNormalsShader.h"
 

@@ -16,6 +16,12 @@ cbuffer TimeBuffer : register(b1)
 	float speed;
 };
 
+cbuffer MatrixBuffer2 : register(b2)
+{
+	matrix lightViewMatrix[3];
+	matrix lightProjectionMatrix[3];
+};
+
 struct ConstantOutputType
 {
 	float edges[4] : SV_TessFactor;
@@ -27,8 +33,6 @@ struct InputType
 	float3 position : POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-	float4 lightViewPos[3] : TEXCOORD1;
-	float3 worldPosition : TEXCOORD4;
 };
 
 struct OutputType
@@ -78,16 +82,14 @@ OutputType main(ConstantOutputType input, float2 uvCoord : SV_DomainLocation, co
 	output.normal = mul(vertexNormal, (float3x3) worldMatrix);
 	output.normal = normalize(output.normal);
 
-	// WHERE ITS MOST LIKELY TO NOT WORK
 	for (int i = 0; i < 3; i++)
 	{
-		output.lightViewPos[i] = patch[i].lightViewPos[i];
+		output.lightViewPos[i] = mul(float4(vertexPosition, 1.0f), worldMatrix);
+		output.lightViewPos[i] = mul(output.lightViewPos[i], lightViewMatrix[i]);
+		output.lightViewPos[i] = mul(output.lightViewPos[i], lightProjectionMatrix[i]);
 	}
 
-	for (int i = 0; i < 3; i++)
-	{
-		output.worldPosition = patch[i].worldPosition;
-	}
+	output.worldPosition = mul(float4(vertexPosition, 1.0f), worldMatrix).xyz;
 
 	return output;
 }

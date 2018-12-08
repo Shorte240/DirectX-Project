@@ -43,7 +43,6 @@ private:
 
 	struct MatrixBufferType2
 	{
-		XMMATRIX world;
 		XMMATRIX lightView[3];
 		XMMATRIX lightProjection[3];
 	};

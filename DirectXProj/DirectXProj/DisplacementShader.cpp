@@ -196,7 +196,6 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	// Lock the constant buffer so it can be written to.
 	result2 = deviceContext->Map(matrixBuffer2, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	MatrixBufferType2* dataPtr2 = (MatrixBufferType2*)mappedResource.pData;
-	dataPtr2->world = tworld;// worldMatrix;
 	dataPtr2->lightView[0] = tLightViewMatrix;
 	dataPtr2->lightProjection[0] = tLightProjectionMatrix;
 	dataPtr2->lightView[1] = tLightViewMatrix2;
@@ -204,7 +203,7 @@ void DisplacementShader::setShaderParameters(ID3D11DeviceContext * deviceContext
 	dataPtr2->lightView[2] = tLightViewMatrix3;
 	dataPtr2->lightProjection[2] = tLightProjectionMatrix3;
 	deviceContext->Unmap(matrixBuffer2, 0);
-	deviceContext->VSSetConstantBuffers(1, 1, &matrixBuffer2);
+	deviceContext->DSSetConstantBuffers(2, 1, &matrixBuffer2);
 
 	// Send camera position to vertex shader
 	CameraBufferType* camPtr;

@@ -8,12 +8,12 @@ cbuffer CameraBuffer : register(b0)
 	float pad;
 };
 
-cbuffer MatrixBuffer : register(b1)
-{
-	matrix worldMatrix;
-	matrix lightViewMatrix[3];
-	matrix lightProjectionMatrix[3];
-};
+//cbuffer MatrixBuffer : register(b1)
+//{
+//	matrix worldMatrix;
+//	matrix lightViewMatrix[3];
+//	matrix lightProjectionMatrix[3];
+//};
 
 struct InputType
 {
@@ -28,8 +28,8 @@ struct OutputType
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
 	float dist : PSIZE;
-	float4 lightViewPos[3] : TEXCOORD1;
-	float3 worldPosition : TEXCOORD4;
+	/*float4 lightViewPos[3] : TEXCOORD1;
+	float3 worldPosition : TEXCOORD4;*/
 };
 
 OutputType main(InputType input)
@@ -49,7 +49,7 @@ OutputType main(InputType input)
 	output.dist = distance(camPos, output.position);
 
 	// Calculate the position of the vertice as viewed by the light source.
-	for (int i = 0; i < 3; i++)
+	/*for (int i = 0; i < 3; i++)
 	{
 		output.lightViewPos[i] = mul(input.position, worldMatrix);
 		output.lightViewPos[i] = mul(output.lightViewPos[i], lightViewMatrix[i]);
@@ -57,7 +57,7 @@ OutputType main(InputType input)
 		output.lightViewPos[i].w = 1.0f;
 	}
 
-	output.worldPosition = mul(input.position, worldMatrix).xyz;
+	output.worldPosition = mul(input.position, worldMatrix).xyz;*/
 
 	return output;
 }

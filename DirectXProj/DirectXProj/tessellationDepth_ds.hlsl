@@ -53,11 +53,6 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
 	float2 t2 = lerp(patch[3].tex, patch[2].tex, uvwCoord.y);
 	vertexTexCoords = lerp(t1, t2, uvwCoord.x);
 
-	// Determine the normal of the new vertex.
-	float3 n1 = lerp(patch[0].normal, patch[1].normal, uvwCoord.y);
-	float3 n2 = lerp(patch[3].normal, patch[2].normal, uvwCoord.y);
-	vertexNormal = lerp(n1, n2, uvwCoord.x);
-
 	// Offset position based on sine wave
 	vertexPosition.y = vertexPosition.y + (height * (sin(((vertexPosition.x * frequency) + (time * speed)))));
 

@@ -136,6 +136,6 @@ float4 main(InputType input) : SV_TARGET
 		}
 	}
 
-	//colour = saturate(colour + ambient[0]);
+	colour = saturate(colour + ambient[0]);
 	return saturate((colour + spotLightColour) * textureColour);
 }

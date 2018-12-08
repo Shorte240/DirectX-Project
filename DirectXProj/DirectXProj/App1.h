@@ -30,8 +30,6 @@ protected:
 	void depthPass(Light* light, RenderTexture* rTex);
 	void depthOfFieldPass();
 	void upSample();
-	void renderReflection(float height);
-	void reflectionPass();
 	void finalPass();
 	void gui();
 	void setLightSettings();
@@ -49,7 +47,6 @@ private:
 	HorizontalBlurShader* horizontalBlurShader;
 	VerticalBlurShader* verticalBlurShader;
 	DepthOfFieldShader* depthOfFieldShader;
-	ReflectionShader* reflectionShader;
 	RenderTessellatedNormalsShader* renderTessNormalsShader;
 	RenderDisplacementNormalsShader* renderDispNormalsShader;
 
@@ -58,19 +55,20 @@ private:
 	OrthoMesh* topLeftOrthoMesh;
 	OrthoMesh* topRightOrthoMesh;
 	OrthoMesh* bottomLeftOrthoMesh;
+	OrthoMesh* bottomRightOrthoMesh;
 	OrthoMesh* screenOrthoMesh;
 	TessellatedSphereMesh* waterTessellatedSphereMesh;
 	TessellatedSphereMesh* earthTessellatedSphereMesh;
-	TessellatedSphereMesh* reflectiveTessellatedSphereMesh;
 
 	// Lights
 	Light* lights[MAX_LIGHTS];	
 
 	// Render Textures
-	RenderTexture* shadowMap;
-	RenderTexture* shadowMap2;
-	RenderTexture* shadowMap3;
+	RenderTexture* leftDirectionalLightShadowMap;
+	RenderTexture* rightDirectionalLightShadowMap;
+	RenderTexture* spotLightShadowMap;
 	RenderTexture* normalSceneTexture;
+	RenderTexture* renderNormalsTexture;
 	RenderTexture* horizontalBlurTexture;
 	RenderTexture* verticalBlurTexture;
 	RenderTexture* downSampleTexture;
@@ -83,10 +81,10 @@ private:
 	float tessellationFactor;
 	float displacementHeight;
 	float depthOfFieldRange;
-	XMMATRIX reflectionViewMatrix;
 	bool renderTopLeftOrthoMesh;
 	bool renderTopRightOrthoMesh;
 	bool renderBottomLeftOrthoMesh;
+	bool renderBottomRightOrthoMesh;
 
 	// Lights ambient colour
 	float leftDirectionalAmbientColour[4];

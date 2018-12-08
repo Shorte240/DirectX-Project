@@ -17,6 +17,12 @@ cbuffer HeightBuffer : register(b1)
     float3 padding;
 };
 
+cbuffer MatrixBuffer2 : register(b2)
+{
+	matrix lightViewMatrix[3];
+	matrix lightProjectionMatrix[3];
+};
+
 struct ConstantOutputType
 {
     float edges[4] : SV_TessFactor;
@@ -28,9 +34,6 @@ struct InputType
     float3 position : POSITION;
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
-    float3 colour : COLOR;
-    float4 lightViewPos[3] : TEXCOORD1;
-	float3 worldPosition : TEXCOORD4;
 };
 
 struct OutputType
@@ -38,7 +41,6 @@ struct OutputType
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
-    float3 colour : COLOR;
     float4 lightViewPos[3] : TEXCOORD1;
 	float3 worldPosition : TEXCOORD4;
 };
@@ -82,19 +84,14 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     output.normal = mul(vertexNormal, (float3x3) worldMatrix);
     output.normal = normalize(output.normal);
 
-	// Send the input color into the pixel shader.
-    output.colour = patch[0].colour;
-
-	// WHERE ITS MOST LIKELY TO NOT WORK
-    for (int i = 0; i < 3; i++)
-    {
-        output.lightViewPos[i] = patch[i].lightViewPos[i];
-    }
-
 	for (int i = 0; i < 3; i++)
 	{
-		output.worldPosition = patch[i].worldPosition;
+		output.lightViewPos[i] = mul(float4(vertexPosition, 1.0f), worldMatrix);
+		output.lightViewPos[i] = mul(output.lightViewPos[i], lightViewMatrix[i]);
+		output.lightViewPos[i] = mul(output.lightViewPos[i], lightProjectionMatrix[i]);
 	}
+
+	output.worldPosition = mul(float4(vertexPosition, 1.0f), worldMatrix).xyz;
 
     return output;
 }

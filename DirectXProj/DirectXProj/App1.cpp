@@ -17,12 +17,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	mesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext());
 	waterTessellatedSphereMesh = new TessellatedSphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 2.0f, 40.0f);
 	earthTessellatedSphereMesh = new TessellatedSphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 2.0f, 40.0f);
-	reflectiveTessellatedSphereMesh = new TessellatedSphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 2.0f, 40.0f);
 
 	// Set up orthoMeshes
 	topLeftOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, screenHeight / 2.7);
 	bottomLeftOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, -screenWidth / 2.7, -screenHeight / 2.7);
 	topRightOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, screenWidth / 2.7, screenHeight / 2.7);
+	bottomRightOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth / 4, screenHeight / 4, screenWidth / 2.7, -screenHeight / 2.7);
 	screenOrthoMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth, screenHeight);	// Full screen size
 
 	// Load in textures
@@ -41,7 +41,6 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	horizontalBlurShader = new HorizontalBlurShader(renderer->getDevice(), hwnd);
 	verticalBlurShader = new VerticalBlurShader(renderer->getDevice(), hwnd);
 	depthOfFieldShader = new DepthOfFieldShader(renderer->getDevice(), hwnd);
-	reflectionShader = new ReflectionShader(renderer->getDevice(), hwnd);
 	renderTessNormalsShader = new RenderTessellatedNormalsShader(renderer->getDevice(), hwnd);
 	renderDispNormalsShader = new RenderDisplacementNormalsShader(renderer->getDevice(), hwnd);
 
@@ -56,10 +55,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	float sceneHeight = 100;
 
 	// This is your shadow map
-	shadowMap = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
-	shadowMap2 = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
-	shadowMap3 = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
+	leftDirectionalLightShadowMap = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
+	rightDirectionalLightShadowMap = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
+	spotLightShadowMap = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
 	normalSceneTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
+	renderNormalsTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	horizontalBlurTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	verticalBlurTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	downSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth / 2, screenHeight / 2, SCREEN_NEAR, SCREEN_DEPTH);
@@ -136,6 +136,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	renderTopLeftOrthoMesh = true;
 	renderTopRightOrthoMesh = true;
 	renderBottomLeftOrthoMesh = true;
+	renderBottomRightOrthoMesh = true;
 
 	// Spot lights initial angle value
 	spotLightAngle = 45.f;
@@ -180,15 +181,15 @@ bool App1::render()
 	// Set the light settings
 	setLightSettings();
 	// Perform depth pass
-	depthPass(lights[0], shadowMap);
-	depthPass(lights[1], shadowMap2);
-	depthPass(lights[2], shadowMap3);
+	depthPass(lights[0], leftDirectionalLightShadowMap);
+	depthPass(lights[1], rightDirectionalLightShadowMap);
+	depthPass(lights[2], spotLightShadowMap);
 	// Perform depth pass on camera
 	cameraDepthPass();
-	// Reflection Pass
-	//reflectionPass();
 	// Render scene to render texture
 	firstPass();
+	// Render tessellated shapes normals
+	renderTessellatedNormals();
 	// Disable wireframe
 	renderer->setWireframeMode(false);
 	// Down sample
@@ -230,7 +231,7 @@ void App1::depthPass(Light* light, RenderTexture* rTex)
 	wavVar.elapsedTime += timer->getTime();
 
 	// Render water tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	tessellationDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
 	tessellationDepthShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
@@ -240,12 +241,6 @@ void App1::depthPass(Light* light, RenderTexture* rTex)
 	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	displacementDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture("height"), tessellationFactor, displacementHeight, camera->getPosition());
 	displacementDepthShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
-
-	// Render reflective tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
-	reflectiveTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	displacementDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix, textureMgr->getTexture("height"), tessellationFactor, displacementHeight, camera->getPosition());
-	displacementDepthShader->render(renderer->getDeviceContext(), reflectiveTessellatedSphereMesh->getIndexCount());
 
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
@@ -273,7 +268,7 @@ void App1::cameraDepthPass()
 	wavVar.elapsedTime += timer->getTime();
 
 	// Render water tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	tessellationDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
 	tessellationDepthShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
@@ -284,95 +279,9 @@ void App1::cameraDepthPass()
 	displacementDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), tessellationFactor, displacementHeight, camera->getPosition());
 	displacementDepthShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
 
-	// Render reflective tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
-	reflectiveTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	displacementDepthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), tessellationFactor, displacementHeight, camera->getPosition());
-	displacementDepthShader->render(renderer->getDeviceContext(), reflectiveTessellatedSphereMesh->getIndexCount());
-
 	// Set back buffer as render target and reset view port.
 	renderer->setBackBufferRenderTarget();
 	renderer->resetViewport();
-}
-
-void App1::renderReflection(float height)
-{
-	XMFLOAT3 up, position, lookAt;
-	float radians;
-
-	// Setup the vector that points upwards.
-	up.x = 0.0f;
-	up.y = 1.0f;
-	up.z = 0.0f;
-
-	// Setup the position of the camera in the world.
-	// For planar reflection invert the Y position of the camera.
-	position.x = camera->getPosition().x;
-	position.y = -camera->getPosition().y + (height * 2.0f);
-	position.z = camera->getPosition().z;
-
-	XMFLOAT3 rot;
-	XMStoreFloat3(&rot, camera->getRotation());
-
-	// Calculate the rotation in radians.
-	radians = rot.y * 0.0174532925f;
-
-	// Setup where the camera is looking.
-	lookAt.x = sinf(radians) + camera->getPosition().x;
-	lookAt.y = position.y;
-	lookAt.z = cosf(radians) + camera->getPosition().z;
-
-	// Create the view matrix from the three vectors.
-	reflectionViewMatrix = XMMatrixLookAtLH(XMLoadFloat3(&position), XMLoadFloat3(&lookAt), XMLoadFloat3(&up));
-}
-
-void App1::reflectionPass()
-{
-	// Set the render target to be the render to texture and clear it
-	reflectionTexture->setRenderTarget(renderer->getDeviceContext());
-	reflectionTexture->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 0.0f, 1.0f, 1.0f);
-
-	// Clear the scene. (default blue colour)
-	//renderer->beginScene(0.39f, 0.58f, 0.92f, 1.0f);
-	camera->update();
-
-	// Generate the reflection matrix
-	renderReflection(5.0f);
-
-	// get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
-	XMMATRIX worldMatrix = renderer->getWorldMatrix();
-	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
-
-	//worldMatrix = XMMatrixTranslation(-50.f, 0.f, -10.f);
-	// Render floor
-	/*mesh->sendData(renderer->getDeviceContext());
-	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, reflectionViewMatrix, projectionMatrix,
-		textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), lights);
-	shadowShader->render(renderer->getDeviceContext(), mesh->getIndexCount());*/
-
-	// Get the elapsed time
-	wavVar.elapsedTime += timer->getTime();
-
-	// Render water tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
-	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, reflectionViewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
-	tessellationShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
-
-	// Render earth tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
-	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	displacementShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, reflectionViewMatrix, projectionMatrix, textureMgr->getTexture("height"), lights, tessellationFactor, displacementHeight, camera->getPosition(), spotLightAngle, constantFactor, linearFactor, quadraticFactor);
-	displacementShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
-
-	// Render earth tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
-	reflectiveTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	displacementShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, reflectionViewMatrix, projectionMatrix, textureMgr->getTexture("height"), lights, tessellationFactor, displacementHeight, camera->getPosition(), spotLightAngle, constantFactor, linearFactor, quadraticFactor);
-	displacementShader->render(renderer->getDeviceContext(), reflectiveTessellatedSphereMesh->getIndexCount());
-
-	// Reset the render target back to the original back buffer and not the render to texture anymore.
-	renderer->setBackBufferRenderTarget();
 }
 
 void App1::firstPass()
@@ -393,35 +302,23 @@ void App1::firstPass()
 	// Render floor
 	mesh->sendData(renderer->getDeviceContext());
 	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
-		textureMgr->getTexture("brick"), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
+		textureMgr->getTexture("brick"), leftDirectionalLightShadowMap->getShaderResourceView(), rightDirectionalLightShadowMap->getShaderResourceView(), spotLightShadowMap->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
 	shadowShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
-	/*reflectionShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
-		reflectionTexture->getShaderResourceView(), textureMgr->getTexture("brick"), reflectionViewMatrix);
-	reflectionShader->render(renderer->getDeviceContext(), mesh->getIndexCount());*/
 
 	// Get the elapsed time
 	wavVar.elapsedTime += timer->getTime();
 
 	// Render water tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
+	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), leftDirectionalLightShadowMap->getShaderResourceView(), rightDirectionalLightShadowMap->getShaderResourceView(), spotLightShadowMap->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
 	tessellationShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
-
-	// Render tessellated shapes normals
-	renderTessellatedNormals();
 
 	// Render earth tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
 	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	displacementShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), lights, tessellationFactor, displacementHeight, camera->getPosition(), spotLightAngle, constantFactor, linearFactor, quadraticFactor);
 	displacementShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
-
-	// Render earth tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
-	reflectiveTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	displacementShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), lights, tessellationFactor, displacementHeight, camera->getPosition(), spotLightAngle, constantFactor, linearFactor, quadraticFactor);
-	displacementShader->render(renderer->getDeviceContext(), reflectiveTessellatedSphereMesh->getIndexCount());
 
 	// Reset the render target back to the original back buffer and not the render to texture anymore.
 	renderer->setBackBufferRenderTarget();
@@ -565,7 +462,7 @@ void App1::finalPass()
 	{
 		// Render top left orthomesh
 		topLeftOrthoMesh->sendData(renderer->getDeviceContext());
-		textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowMap->getShaderResourceView());
+		textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, leftDirectionalLightShadowMap->getShaderResourceView());
 		textureShader->render(renderer->getDeviceContext(), topLeftOrthoMesh->getIndexCount());
 	}
 
@@ -573,7 +470,7 @@ void App1::finalPass()
 	{
 		// Render bottom left orthomesh
 		bottomLeftOrthoMesh->sendData(renderer->getDeviceContext());
-		textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowMap3->getShaderResourceView());
+		textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, spotLightShadowMap->getShaderResourceView());
 		textureShader->render(renderer->getDeviceContext(), bottomLeftOrthoMesh->getIndexCount());
 	}
 
@@ -581,8 +478,16 @@ void App1::finalPass()
 	{
 		// Render top right orthomesh
 		topRightOrthoMesh->sendData(renderer->getDeviceContext());
-		textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowMap2->getShaderResourceView());
+		textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, rightDirectionalLightShadowMap->getShaderResourceView());
 		textureShader->render(renderer->getDeviceContext(), topRightOrthoMesh->getIndexCount());
+	}
+
+	if (renderBottomRightOrthoMesh)
+	{
+		// Render top right orthomesh
+		bottomRightOrthoMesh->sendData(renderer->getDeviceContext());
+		textureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, renderNormalsTexture->getShaderResourceView());
+		textureShader->render(renderer->getDeviceContext(), bottomRightOrthoMesh->getIndexCount());
 	}
 
 	renderer->setZBuffer(true);
@@ -693,6 +598,7 @@ void App1::gui()
 		ImGui::Checkbox("Render top left ortho mesh", &renderTopLeftOrthoMesh);
 		ImGui::Checkbox("Render top right ortho mesh", &renderTopRightOrthoMesh);
 		ImGui::Checkbox("Render bottom left ortho mesh", &renderBottomLeftOrthoMesh);
+		ImGui::Checkbox("Render bottom right ortho mesh", &renderBottomRightOrthoMesh);
 	}
 
 	// Render UI
@@ -720,6 +626,10 @@ void App1::setLightSettings()
 
 void App1::renderTessellatedNormals()
 {
+	// Set the render target to be the render to texture and clear it
+	renderNormalsTexture->setRenderTarget(renderer->getDeviceContext());
+	renderNormalsTexture->clearRenderTarget(renderer->getDeviceContext(), 1.0f, 1.0f, 1.0f, 1.0f);
+
 	// get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
 	XMMATRIX worldMatrix = renderer->getWorldMatrix();
 	XMMATRIX viewMatrix = camera->getViewMatrix();
@@ -729,21 +639,18 @@ void App1::renderTessellatedNormals()
 	wavVar.elapsedTime += timer->getTime();
 
 	// Render water tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	renderTessNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
 	renderTessNormalsShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
 
-	//// Render earth tessellated sphere
+	// Render earth tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
 	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	renderDispNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), displacementHeight, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
 	renderDispNormalsShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
 
-	//// Render earth tessellated sphere
-	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
-	reflectiveTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	renderDispNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), displacementHeight, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
-	renderDispNormalsShader->render(renderer->getDeviceContext(), reflectiveTessellatedSphereMesh->getIndexCount());
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	renderer->setBackBufferRenderTarget();
 }
 

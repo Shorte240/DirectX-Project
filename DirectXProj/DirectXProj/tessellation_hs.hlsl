@@ -13,8 +13,8 @@ struct InputType
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
 	float dist : PSIZE;
-	float4 lightViewPos[3] : TEXCOORD1;
-	float3 worldPosition : TEXCOORD4;
+	/*float4 lightViewPos[3] : TEXCOORD1;
+	float3 worldPosition : TEXCOORD4;*/
 };
 
 struct ConstantOutputType
@@ -28,8 +28,8 @@ struct OutputType
 	float3 position : POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-	float4 lightViewPos[3] : TEXCOORD1;
-	float3 worldPosition : TEXCOORD4;
+	/*float4 lightViewPos[3] : TEXCOORD1;
+	float3 worldPosition : TEXCOORD4;*/
 };
 
 ConstantOutputType PatchConstantFunction(InputPatch<InputType, 4> inputPatch, uint patchId : SV_PrimitiveID)
@@ -70,12 +70,12 @@ OutputType main(InputPatch<InputType, 4> patch, uint pointId : SV_OutputControlP
 	// Set the normal for this control point as the output normal.
 	output.normal = patch[pointId].normal;
 
-	for (int i = 0; i < 3; i++)
+	/*for (int i = 0; i < 3; i++)
 	{
 		output.lightViewPos[i] = patch[pointId].lightViewPos[i];
 	}
 
-	output.worldPosition = patch[pointId].worldPosition;
+	output.worldPosition = patch[pointId].worldPosition;*/
 
 	return output;
 }
