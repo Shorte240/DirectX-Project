@@ -32,8 +32,12 @@ protected:
 	void upSample();
 	void finalPass();
 	void gui();
-	void setLightSettings();
+	void updateLightSettings();
 	void renderTessellatedNormals();
+	void initialiseLights();
+	void releaseShaders();
+	void releaseMeshes();
+	void releaseTextures();
 
 private:
 	// Shaders
@@ -51,7 +55,7 @@ private:
 	RenderDisplacementNormalsShader* renderDispNormalsShader;
 
 	// Meshes
-	PlaneMesh* mesh;
+	PlaneMesh* floorMesh;
 	OrthoMesh* topLeftOrthoMesh;
 	OrthoMesh* topRightOrthoMesh;
 	OrthoMesh* bottomLeftOrthoMesh;
@@ -75,7 +79,6 @@ private:
 	RenderTexture* upSampleTexture;
 	RenderTexture* depthOfFieldTexture;
 	RenderTexture* cameraDepthTexture;
-	RenderTexture* reflectionTexture;
 
 	// Variables
 	float tessellationFactor;
@@ -111,6 +114,10 @@ private:
 	float constantFactor;
 	float linearFactor;
 	float quadraticFactor;
+
+	// Scene variables
+	float sceneWidth;
+	float sceneHeight;
 
 	struct WaveVariables
 	{

@@ -14,7 +14,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	BaseApplication::init(hinstance, hwnd, screenWidth, screenHeight, in, VSYNC, FULL_SCREEN);
 
 	// Set up meshes
-	mesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext());
+	floorMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext());
 	waterTessellatedSphereMesh = new TessellatedSphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 2.0f, 40.0f);
 	earthTessellatedSphereMesh = new TessellatedSphereMesh(renderer->getDevice(), renderer->getDeviceContext(), 2.0f, 40.0f);
 
@@ -45,14 +45,13 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	renderDispNormalsShader = new RenderDisplacementNormalsShader(renderer->getDevice(), hwnd);
 
 	// Set shadow map width/height
+	// 4096 breaks graphics debugger on win7.
 	int shadowmapWidth = 2048;
 	int shadowmapHeight = 2048;
 
-	// 4096 breaks my graphics debugger on win7???
-
 	// Set scene width/height for lights
-	float sceneWidth = 100;
-	float sceneHeight = 100;
+	sceneWidth = 100;
+	sceneHeight = 100;
 
 	// This is your shadow map
 	leftDirectionalLightShadowMap = new RenderTexture(renderer->getDevice(), shadowmapWidth, shadowmapHeight, 0.1f, 100.f);
@@ -66,56 +65,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	upSampleTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	depthOfFieldTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 	cameraDepthTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
-	reflectionTexture = new RenderTexture(renderer->getDevice(), screenWidth, screenHeight, SCREEN_NEAR, SCREEN_DEPTH);
 
-	// Light[0] is a direction light coming from the left
-	lights[0] = new Light;
-	// Light[1] is a direction light coming from the right
-	lights[1] = new Light;
-	// Light[2] is a spot light coming from above
-	lights[2] = new Light;
-	for (int i = 0; i < 3; i++)
-	{
-		leftDirectionalAmbientColour[i] = 0.3f;
-		rightDirectionalAmbientColour[i] = 0.3f;
-		spotAmbientColour[i] = 0.3f;
-		spotDiffuseColour[i] = 1.0f;
-	}
-	// Set light .w/alpha to 1.0f
-	leftDirectionalAmbientColour[3] = 1.0f;
-	rightDirectionalAmbientColour[3] = 1.0f;
-	spotAmbientColour[3] = 1.0f;
-	// Set lights diffuse colour
-	leftDirectionalDiffuseColour[0] = 0.8f;
-	leftDirectionalDiffuseColour[3] = 1.0f;
-	rightDirectionalDiffuseColour[2] = 0.8f;
-	rightDirectionalDiffuseColour[3] = 1.0f;
-	spotDiffuseColour[3] = 1.0f;
-	// Set lights direction
-	leftDirectionalDirection[0] = 0.7f;
-	leftDirectionalDirection[1] = -0.7f;
-	leftDirectionalDirection[2] = 0.0f;
-	rightDirectionalDirection[0] = -0.7f;
-	rightDirectionalDirection[1] = -0.7f;
-	rightDirectionalDirection[2] = 0.0f;
-	spotDirection[0] = 0.1f;
-	// Up/Down matrices are broken
-	spotDirection[1] = -1.0f;
-	spotDirection[2] = 0.1f;
-	// Set lights position
-	leftDirectionalPosition[0] = -10.0f;
-	leftDirectionalPosition[1] = 0.0f;
-	leftDirectionalPosition[2] = 0.0f;
-	spotPosition[0] = 0.0f;
-	spotPosition[1] = 10.0f;
-	spotPosition[2] = 10.0f;
-	rightDirectionalPosition[0] = 10.0f;
-	rightDirectionalPosition[1] = 0.0f;
-	rightDirectionalPosition[2] = 0.0f;
-	// Generate light ortho matrix
-	lights[0]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
-	lights[1]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
-	lights[2]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
+	// Give all the lights initial ambient, diffuse, direction and position variables if appropriate
+	initialiseLights();
 
 	// Height maps initial displacement height
 	displacementHeight = 0;
@@ -151,8 +103,14 @@ App1::~App1()
 	// Run base application deconstructor
 	BaseApplication::~BaseApplication();
 
-	// Release the Direct3D object.
+	// Release the shaders.
+	releaseShaders();
 
+	// Release the meshes.
+	releaseMeshes();
+
+	// Release the textures.
+	releaseTextures();
 }
 
 bool App1::frame()
@@ -178,27 +136,37 @@ bool App1::frame()
 bool App1::render()
 {
 	// Set the light settings
-	setLightSettings();
-	// Perform depth pass
+	updateLightSettings();
+
+	// Render scene to render texture
+	firstPass();
+
+	// Perform depth passes for each light
 	depthPass(lights[0], leftDirectionalLightShadowMap);
 	depthPass(lights[1], rightDirectionalLightShadowMap);
 	depthPass(lights[2], spotLightShadowMap);
+
 	// Perform depth pass on camera
 	cameraDepthPass();
-	// Render scene to render texture
-	firstPass();
+	
 	// Render tessellated shapes normals
 	renderTessellatedNormals();
+
 	// Disable wireframe
 	renderer->setWireframeMode(false);
+
 	// Down sample
 	downSample();
+
 	// Apply horizontal blur stage
 	horizontalBlur();
+
 	// Apply vertical blur to the horizontal blur stage
 	verticalBlur();
+
 	// Apply depth of field shader
 	depthOfFieldPass();
+
 	// Up sample
 	upSample();
 	
@@ -208,6 +176,8 @@ bool App1::render()
 	return true;
 }
 
+// depthPass, does a depth pass on all objects on the scene,
+// from each lights point of view
 void App1::depthPass(Light* light, RenderTexture* rTex)
 {
 	// Set the render target to be the render to texture.
@@ -222,9 +192,9 @@ void App1::depthPass(Light* light, RenderTexture* rTex)
 
 	worldMatrix = XMMatrixTranslation(-50.f, 0.f, -10.f);
 	// Render floor
-	mesh->sendData(renderer->getDeviceContext());
+	floorMesh->sendData(renderer->getDeviceContext());
 	depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
-	depthShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
+	depthShader->render(renderer->getDeviceContext(), floorMesh->getIndexCount());
 
 	// Get the elapsed time
 	wavVar.elapsedTime += timer->getTime();
@@ -246,6 +216,8 @@ void App1::depthPass(Light* light, RenderTexture* rTex)
 	renderer->resetViewport();
 }
 
+// Camera depth pass does a depth pass from the cameras view on all objects in the scene,
+// this is then used in the depth of field shader
 void App1::cameraDepthPass()
 {
 	// Set the render target to be the render to texture.
@@ -259,9 +231,9 @@ void App1::cameraDepthPass()
 
 	worldMatrix = XMMatrixTranslation(-50.f, 0.f, -10.f);
 	// Render floor
-	mesh->sendData(renderer->getDeviceContext());
+	floorMesh->sendData(renderer->getDeviceContext());
 	depthShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix);
-	depthShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
+	depthShader->render(renderer->getDeviceContext(), floorMesh->getIndexCount());
 
 	// Get the elapsed time
 	wavVar.elapsedTime += timer->getTime();
@@ -283,6 +255,7 @@ void App1::cameraDepthPass()
 	renderer->resetViewport();
 }
 
+// firstPass renders the regular scene to a texture
 void App1::firstPass()
 {
 	// Set the render target to be the render to texture and clear it
@@ -299,10 +272,10 @@ void App1::firstPass()
 
 	worldMatrix = XMMatrixTranslation(-50.f, 0.f, -10.f);
 	// Render floor
-	mesh->sendData(renderer->getDeviceContext());
+	floorMesh->sendData(renderer->getDeviceContext());
 	shadowShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix,
 		textureMgr->getTexture("brick"), leftDirectionalLightShadowMap->getShaderResourceView(), rightDirectionalLightShadowMap->getShaderResourceView(), spotLightShadowMap->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
-	shadowShader->render(renderer->getDeviceContext(), mesh->getIndexCount());
+	shadowShader->render(renderer->getDeviceContext(), floorMesh->getIndexCount());
 
 	// Get the elapsed time
 	wavVar.elapsedTime += timer->getTime();
@@ -323,6 +296,7 @@ void App1::firstPass()
 	renderer->setBackBufferRenderTarget();
 }
 
+// Down samples the normal scene texture to make blurring faster
 void App1::downSample()
 {
 	// Set the render target to be the render to texture and clear it
@@ -346,6 +320,7 @@ void App1::downSample()
 	renderer->setBackBufferRenderTarget();
 }
 
+// Applies a horizontal blur to the down sampled scene texture
 void App1::horizontalBlur()
 {
 	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
@@ -369,6 +344,7 @@ void App1::horizontalBlur()
 	renderer->setBackBufferRenderTarget();
 }
 
+// Applies a vertical blur to the horizontal blur texture
 void App1::verticalBlur()
 {
 	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
@@ -393,6 +369,8 @@ void App1::verticalBlur()
 	renderer->setBackBufferRenderTarget();
 }
 
+// depthOfFieldPass, uses the vertical and horizontal blur shaders to create a depth of field
+// post processing effect.
 void App1::depthOfFieldPass()
 {
 	XMMATRIX worldMatrix, baseViewMatrix, orthoMatrix;
@@ -416,6 +394,7 @@ void App1::depthOfFieldPass()
 	renderer->setBackBufferRenderTarget();
 }
 
+// upSample, up samples the depth of field texture
 void App1::upSample()
 {
 	// Set the render target to be the render to texture and clear it
@@ -439,6 +418,7 @@ void App1::upSample()
 	renderer->setBackBufferRenderTarget();
 }
 
+// Final shader pass, used to render to the screen
 void App1::finalPass()
 {
 	// Clear the scene. (default blue colour)
@@ -495,6 +475,7 @@ void App1::finalPass()
 	renderer->endScene();
 }
 
+// Function to set up and render the ImGui client
 void App1::gui()
 {
 	// Force turn off unnecessary shader stages.
@@ -508,14 +489,14 @@ void App1::gui()
 	if (ImGui::CollapsingHeader("Tessellation", 0))
 	{
 		ImGui::SliderFloat("Tessellation Factor", &tessellationFactor, 1.0f, 64.0f);
-		ImGui::SliderFloat("Wave Height", &wavVar.height, 0.0f, 5.0f);
-		ImGui::SliderFloat("Wave Frequency", &wavVar.frequency, 0.0f, 15.0f);
+		ImGui::SliderFloat("Wave Height", &wavVar.height, 0.0f, 0.5f);
+		ImGui::SliderFloat("Wave Frequency", &wavVar.frequency, 0.0f, 5.0f);
 		ImGui::SliderFloat("Wave Speed", &wavVar.speed, 0.0f, 5.0f);
 	}
 	
 	if (ImGui::CollapsingHeader("Displacement", 0))
 	{
-		ImGui::SliderFloat("Displacement Height", &displacementHeight, 0.0f, 2.0f);
+		ImGui::SliderFloat("Displacement Height", &displacementHeight, 0.0f, 1.0f);
 	}
 
 	if (ImGui::CollapsingHeader("Depth Of Field", 0))
@@ -605,7 +586,8 @@ void App1::gui()
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
-void App1::setLightSettings()
+// Function to set the light values to the variables altered via ImGui
+void App1::updateLightSettings()
 {
 	lights[0]->setAmbientColour(leftDirectionalAmbientColour[0], leftDirectionalAmbientColour[1], leftDirectionalAmbientColour[2], leftDirectionalAmbientColour[3]);
 	lights[0]->setDiffuseColour(leftDirectionalDiffuseColour[0], leftDirectionalDiffuseColour[1], leftDirectionalDiffuseColour[2], leftDirectionalDiffuseColour[3]);
@@ -623,6 +605,7 @@ void App1::setLightSettings()
 	lights[2]->setPosition(spotPosition[0], spotPosition[1], spotPosition[2]);
 }
 
+// Shader used to render the normals of the tessellated shapes.
 void App1::renderTessellatedNormals()
 {
 	// Set the render target to be the render to texture and clear it
@@ -651,5 +634,290 @@ void App1::renderTessellatedNormals()
 
 	// Reset the render target back to the original back buffer and not the render to texture anymore.
 	renderer->setBackBufferRenderTarget();
+}
+
+// Gives all the lights used in the scene an initial value.
+void App1::initialiseLights()
+{
+	// Light[0] is a direction light coming from the left
+	lights[0] = new Light;
+	// Light[1] is a direction light coming from the right
+	lights[1] = new Light;
+	// Light[2] is a spot light coming from above
+	lights[2] = new Light;
+	for (int i = 0; i < 3; i++)
+	{
+		leftDirectionalAmbientColour[i] = 0.3f;
+		rightDirectionalAmbientColour[i] = 0.3f;
+		spotAmbientColour[i] = 0.3f;
+		spotDiffuseColour[i] = 1.0f;
+	}
+	// Set light .w/alpha to 1.0f
+	leftDirectionalAmbientColour[3] = 1.0f;
+	rightDirectionalAmbientColour[3] = 1.0f;
+	spotAmbientColour[3] = 1.0f;
+	// Set lights diffuse colour
+	leftDirectionalDiffuseColour[0] = 0.8f;
+	leftDirectionalDiffuseColour[3] = 1.0f;
+	rightDirectionalDiffuseColour[2] = 0.8f;
+	rightDirectionalDiffuseColour[3] = 1.0f;
+	spotDiffuseColour[3] = 1.0f;
+	// Set lights direction
+	leftDirectionalDirection[0] = 0.7f;
+	leftDirectionalDirection[1] = -0.7f;
+	leftDirectionalDirection[2] = 0.0f;
+	rightDirectionalDirection[0] = -0.7f;
+	rightDirectionalDirection[1] = -0.7f;
+	rightDirectionalDirection[2] = 0.0f;
+	spotDirection[0] = 0.1f;
+	// Up/Down matrices are broken
+	spotDirection[1] = -1.0f;
+	spotDirection[2] = 0.1f;
+	// Set lights position
+	leftDirectionalPosition[0] = -10.0f;
+	leftDirectionalPosition[1] = 0.0f;
+	leftDirectionalPosition[2] = 0.0f;
+	spotPosition[0] = 0.0f;
+	spotPosition[1] = 10.0f;
+	spotPosition[2] = 10.0f;
+	rightDirectionalPosition[0] = 10.0f;
+	rightDirectionalPosition[1] = 0.0f;
+	rightDirectionalPosition[2] = 0.0f;
+	// Generate light ortho matrix
+	lights[0]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
+	lights[1]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
+	lights[2]->generateOrthoMatrix(sceneWidth, sceneHeight, 0.1f, 100.f);
+}
+
+// Releases/deletes all shaders used in the scene when the application closes down.
+// Used in the deconstructor.
+void App1::releaseShaders()
+{
+	// Release the texture shader.
+	if (textureShader)
+	{
+		delete textureShader;
+		textureShader = 0;
+	}
+
+	// Release the shadow shader.
+	if (shadowShader)
+	{
+		delete shadowShader;
+		shadowShader = 0;
+	}
+
+	// Release the depth shader.
+	if (depthShader)
+	{
+		delete depthShader;
+		depthShader = 0;
+	}
+
+	// Release the tessellation shader.
+	if (tessellationShader)
+	{
+		delete tessellationShader;
+		tessellationShader = 0;
+	}
+
+	// Release the tessellaiton depth shader.
+	if (tessellationDepthShader)
+	{
+		delete tessellationDepthShader;
+		tessellationDepthShader = 0;
+	}
+
+	// Release the displacement shader.
+	if (displacementShader)
+	{
+		delete displacementShader;
+		displacementShader = 0;
+	}
+
+	// Release the displacement depth shader.
+	if (displacementDepthShader)
+	{
+		delete displacementDepthShader;
+		displacementDepthShader = 0;
+	}
+
+	// Release the horizontal blur shader.
+	if (horizontalBlurShader)
+	{
+		delete horizontalBlurShader;
+		horizontalBlurShader = 0;
+	}
+
+	// Release the vertical blur shader.
+	if (verticalBlurShader)
+	{
+		delete verticalBlurShader;
+		verticalBlurShader = 0;
+	}
+
+	// Release the depth of field shader.
+	if (depthOfFieldShader)
+	{
+		delete depthOfFieldShader;
+		depthOfFieldShader = 0;
+	}
+
+	// Release the render tessellated normals shader.
+	if (renderTessNormalsShader)
+	{
+		delete renderTessNormalsShader;
+		renderTessNormalsShader = 0;
+	}
+
+	// Release the render displacement normals shader.
+	if (renderDispNormalsShader)
+	{
+		delete renderDispNormalsShader;
+		renderDispNormalsShader = 0;
+	}
+}
+
+// Releases/deletes all meshes used in the scene when the application closes down.
+// Used in the deconstructor.
+void App1::releaseMeshes()
+{
+	// Release the floor mesh.
+	if (floorMesh)
+	{
+		delete floorMesh;
+		floorMesh = 0;
+	}
+
+	// Release the top left ortho mesh.
+	if (topLeftOrthoMesh)
+	{
+		delete topLeftOrthoMesh;
+		topLeftOrthoMesh = 0;
+	}
+
+	// Release the top right ortho mesh.
+	if (topRightOrthoMesh)
+	{
+		delete topRightOrthoMesh;
+		topRightOrthoMesh = 0;
+	}
+
+	// Release the bottom left ortho mesh.
+	if (bottomLeftOrthoMesh)
+	{
+		delete bottomLeftOrthoMesh;
+		bottomLeftOrthoMesh = 0;
+	}
+
+	// Release the bottom right ortho mesh.
+	if (bottomRightOrthoMesh)
+	{
+		delete bottomRightOrthoMesh;
+		bottomRightOrthoMesh = 0;
+	}
+
+	// Release the screen ortho mesh.
+	if (screenOrthoMesh)
+	{
+		delete screenOrthoMesh;
+		screenOrthoMesh = 0;
+	}
+
+	// Release the water tessellated sphere mesh.
+	if (waterTessellatedSphereMesh)
+	{
+		delete waterTessellatedSphereMesh;
+		waterTessellatedSphereMesh = 0;
+	}
+
+	// Release the earth tessellated sphere mesh.
+	if (earthTessellatedSphereMesh)
+	{
+		delete earthTessellatedSphereMesh;
+		earthTessellatedSphereMesh = 0;
+	}
+}
+
+// Releases/deletes all textures used in the scene when the application closes down.
+// Used in the deconstructor.
+void App1::releaseTextures()
+{
+	// Release the left directional shadow map texture.
+	if (leftDirectionalLightShadowMap)
+	{
+		delete leftDirectionalLightShadowMap;
+		leftDirectionalLightShadowMap = 0;
+	}
+
+	// Release the right directional shadow map texture.
+	if (rightDirectionalLightShadowMap)
+	{
+		delete rightDirectionalLightShadowMap;
+		rightDirectionalLightShadowMap = 0;
+	}
+
+	// Release the spot light shadow map texture.
+	if (spotLightShadowMap)
+	{
+		delete spotLightShadowMap;
+		spotLightShadowMap = 0;
+	}
+
+	// Release the normal scene texture.
+	if (normalSceneTexture)
+	{
+		delete normalSceneTexture;
+		normalSceneTexture = 0;
+	}
+
+	// Release the render normals texture.
+	if (renderNormalsTexture)
+	{
+		delete renderNormalsTexture;
+		renderNormalsTexture = 0;
+	}
+
+	// Release the horizontal blur texture.
+	if (horizontalBlurTexture)
+	{
+		delete horizontalBlurTexture;
+		horizontalBlurTexture = 0;
+	}
+
+	// Release the vertical blur texture.
+	if (verticalBlurTexture)
+	{
+		delete verticalBlurTexture;
+		verticalBlurTexture = 0;
+	}
+
+	// Release the down sampler texture.
+	if (downSampleTexture)
+	{
+		delete downSampleTexture;
+		downSampleTexture = 0;
+	}
+
+	// Release the up sampler texture.
+	if (upSampleTexture)
+	{
+		delete upSampleTexture;
+		upSampleTexture = 0;
+	}
+
+	// Release the depth of field texture.
+	if (depthOfFieldTexture)
+	{
+		delete depthOfFieldTexture;
+		depthOfFieldTexture = 0;
+	}
+
+	// Release the camera depth texture.
+	if (cameraDepthTexture)
+	{
+		delete cameraDepthTexture;
+		cameraDepthTexture = 0;
+	}
 }
 

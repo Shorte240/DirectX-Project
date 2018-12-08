@@ -68,7 +68,7 @@ OutputType main(ConstantOutputType input, float2 uvCoord : SV_DomainLocation, co
 	float3 n2 = lerp(patch[3].normal, patch[2].normal, uvCoord.y);
 	vertexNormal = lerp(n1, n2, uvCoord.x);
 
-	// Offset position based on sine wave
+	// Offset position based on the normals using a sine wave
     vertexPosition += vertexNormal * (height * (sin(((vertexNormal * frequency) + (time * speed)))));
 
 	// Calculate the position of the new vertex against the world, view, and projection matrices.
