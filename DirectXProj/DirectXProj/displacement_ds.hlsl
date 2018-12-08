@@ -91,7 +91,10 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
         output.lightViewPos[i] = patch[i].lightViewPos[i];
     }
 
-	output.worldPosition = patch[0].worldPosition;
+	for (int i = 0; i < 3; i++)
+	{
+		output.worldPosition = patch[i].worldPosition;
+	}
 
     return output;
 }
