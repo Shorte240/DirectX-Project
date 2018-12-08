@@ -44,12 +44,6 @@ void main(triangle InputType input[3], inout TriangleStream<OutputType> triStrea
 		output.lightViewPos[2] = input[i].lightViewPos[2];
 		output.worldPosition = input[i].worldPosition;
 		triStream.Append(output);
-
-		/*output.position = input[i].position;
-		triStream.Append(output);
-
-		output.position = input[i].position + (float4(input[i].normal, 1.0f) * length(input[i].normal));
-		triStream.Append(output);*/
 	}
 	triStream.RestartStrip();
 }

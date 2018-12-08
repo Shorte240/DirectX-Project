@@ -14,5 +14,6 @@
 #include "DepthOfFieldShader.h"
 #include "ReflectionShader.h"
 #include "RenderTessellatedNormalsShader.h"
+#include "RenderDisplacementNormalsShader.h"
 
 

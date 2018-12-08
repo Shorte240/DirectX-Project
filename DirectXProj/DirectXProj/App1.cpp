@@ -43,6 +43,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	depthOfFieldShader = new DepthOfFieldShader(renderer->getDevice(), hwnd);
 	reflectionShader = new ReflectionShader(renderer->getDevice(), hwnd);
 	renderTessNormalsShader = new RenderTessellatedNormalsShader(renderer->getDevice(), hwnd);
+	renderDispNormalsShader = new RenderDisplacementNormalsShader(renderer->getDevice(), hwnd);
 
 	// Set shadow map width/height
 	int shadowmapWidth = 2048;
@@ -736,13 +737,13 @@ void App1::renderTessellatedNormals()
 	//// Render earth tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
 	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	renderTessNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
-	renderTessNormalsShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
+	renderDispNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), displacementHeight, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
+	renderDispNormalsShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
 
 	//// Render earth tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
 	reflectiveTessellatedSphereMesh->sendData(renderer->getDeviceContext());
-	renderTessNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
-	renderTessNormalsShader->render(renderer->getDeviceContext(), reflectiveTessellatedSphereMesh->getIndexCount());
+	renderDispNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), displacementHeight, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
+	renderDispNormalsShader->render(renderer->getDeviceContext(), reflectiveTessellatedSphereMesh->getIndexCount());
 }
 

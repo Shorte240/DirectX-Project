@@ -10,8 +10,9 @@ cbuffer TessellationBuffer : register(b0)
 struct InputType
 {
 	float3 position : POSITION;
+	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-	float dist : TEXCOORD0;
+	float dist : TEXCOORD1;
 };
 
 struct ConstantOutputType
@@ -23,6 +24,7 @@ struct ConstantOutputType
 struct OutputType
 {
 	float3 position : POSITION;
+	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
 };
 
@@ -57,6 +59,9 @@ OutputType main(InputPatch<InputType, 4> patch, uint pointId : SV_OutputControlP
 
 	// Set the position for this control point as the output position.
 	output.position = patch[pointId].position;
+
+	// Set the texture coordinates for this control point as the output texture coordinate.
+	output.tex = patch[pointId].tex;
 
 	// Set the normal for this control point as the output normal.
 	output.normal = patch[pointId].normal;

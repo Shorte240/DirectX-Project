@@ -99,6 +99,9 @@
     <ClCompile Include="RenderTessellatedNormalsShader.cpp">
       <Filter>Source Files\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="RenderDisplacementNormalsShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DepthShader.h">
@@ -144,6 +147,9 @@
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="RenderTessellatedNormalsShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDisplacementNormalsShader.h">
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
@@ -231,6 +237,9 @@
     </FxCompile>
     <FxCompile Include="renderTessellatedNormals_ds.hlsl">
       <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="renderDisplacementNormals_ds.hlsl">
+      <Filter>Resource Files\Displacement</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

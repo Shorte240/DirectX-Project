@@ -51,6 +51,7 @@ private:
 	DepthOfFieldShader* depthOfFieldShader;
 	ReflectionShader* reflectionShader;
 	RenderTessellatedNormalsShader* renderTessNormalsShader;
+	RenderDisplacementNormalsShader* renderDispNormalsShader;
 
 	// Meshes
 	PlaneMesh* mesh;
