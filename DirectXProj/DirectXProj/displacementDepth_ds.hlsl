@@ -64,10 +64,6 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
     float4 textureColour = heightTex.SampleLevel(sampler0, vertexTexCoords, 0, 0);
     vertexPosition += vertexNormal * (textureColour.r * height);
 
-	// Modify the normals
-	//vertexNormal.x = 1 - cos(vertexPosition.x + time);
-	//vertexNormal.y = 1 - abs(cos(vertexPosition.x + time));
-
 	// Calculate the position of the new vertex against the world, view, and projection matrices.
     output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
     output.position = mul(output.position, viewMatrix);
@@ -75,17 +71,6 @@ OutputType main(ConstantOutputType input, float2 uvwCoord : SV_DomainLocation, c
 
 	// Store the position value in a second input value for depth value calculations.
     output.depthPosition = output.position;
-
-	//// Calculate the tex coords.
-	//output.tex.x = vertexTexCoords.x;
-	//output.tex.y = vertexTexCoords.y;
-
-	//// Calculate the normal vector against the world matrix only and normalise.
-	//output.normal = mul(vertexNormal, (float3x3) worldMatrix);
-	//output.normal = normalize(output.normal);
-
-	//// Send the input color into the pixel shader.
-	//output.colour = patch[0].colour;
 
     return output;
 }

@@ -35,9 +35,6 @@ struct InputType
 	float4 colour : COLOR;
 	float4 lightViewPos[3] : TEXCOORD1;
 	float3 worldPosition : TEXCOORD4;
-	float3 vertNorm : TEXCOOR5;
-	float3 vertNorm2 : TEXCOOR6;
-	float2 uv : TEXCOORD7;
 };
 
 // Calculate lighting intensity based on direction and normal. Combine with light colour.
@@ -66,12 +63,6 @@ float4 main(InputType input) : SV_TARGET
 	float4 spotLightColour;
 	float4 textureColour = shaderTexture.Sample(diffuseSampler, input.tex);
 	bool isLit = false;
-
-	float3 vN = input.vertNorm;
-	float3 vN2 = input.vertNorm2;
-
-	float3 t = vN / 2.0f;
-	float3 t2 = vN2 / 2.0f;
 
 	// Calculate the projected texture coordinates.
 	for (int i = 0; i < 3; i++)
