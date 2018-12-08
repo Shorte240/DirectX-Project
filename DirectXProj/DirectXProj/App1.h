@@ -35,6 +35,7 @@ protected:
 	void finalPass();
 	void gui();
 	void setLightSettings();
+	void renderTessellatedNormals();
 
 private:
 	// Shaders
@@ -49,6 +50,7 @@ private:
 	VerticalBlurShader* verticalBlurShader;
 	DepthOfFieldShader* depthOfFieldShader;
 	ReflectionShader* reflectionShader;
+	RenderTessellatedNormalsShader* renderTessNormalsShader;
 
 	// Meshes
 	PlaneMesh* mesh;

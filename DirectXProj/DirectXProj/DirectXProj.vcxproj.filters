@@ -49,6 +49,9 @@
     <Filter Include="Resource Files\Reflection">
       <UniqueIdentifier>{e71e0d0a-5c5f-459b-9294-5f67190d18e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Tessellation\Normals Rendering">
+      <UniqueIdentifier>{7bc71609-81d7-4953-99a5-c2e23f8954f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App1.cpp">
@@ -93,6 +96,9 @@
     <ClCompile Include="ReflectionShader.cpp">
       <Filter>Source Files\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="RenderTessellatedNormalsShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DepthShader.h">
@@ -135,6 +141,9 @@
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="ReflectionShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTessellatedNormalsShader.h">
       <Filter>Header Files\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
@@ -207,6 +216,21 @@
     </FxCompile>
     <FxCompile Include="tessellation_gs.hlsl">
       <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="renderTessellatedNormals_vs.hlsl">
+      <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="renderTessellatedNormals_ps.hlsl">
+      <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="renderTessellatedNormals_hs.hlsl">
+      <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="renderTessellatedNormals_gs.hlsl">
+      <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="renderTessellatedNormals_ds.hlsl">
+      <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

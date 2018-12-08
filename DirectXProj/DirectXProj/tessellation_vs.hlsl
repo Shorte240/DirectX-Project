@@ -27,7 +27,6 @@ struct OutputType
 	float3 position : POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-	float3 colour : COLOR;
 	float dist : PSIZE;
 	float4 lightViewPos[3] : TEXCOORD1;
 	float3 worldPosition : TEXCOORD4;
@@ -48,9 +47,6 @@ OutputType main(InputType input)
 
 	// Get the distance between the camera and vertex position.
 	output.dist = distance(camPos, output.position);
-
-	// Pass the input color into the hull shader.
-	output.colour = float4(1.0, 0.0, 0.0, 1.0);
 
 	// Calculate the position of the vertice as viewed by the light source.
 	for (int i = 0; i < 3; i++)

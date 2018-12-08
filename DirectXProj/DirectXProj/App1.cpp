@@ -42,6 +42,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	verticalBlurShader = new VerticalBlurShader(renderer->getDevice(), hwnd);
 	depthOfFieldShader = new DepthOfFieldShader(renderer->getDevice(), hwnd);
 	reflectionShader = new ReflectionShader(renderer->getDevice(), hwnd);
+	renderTessNormalsShader = new RenderTessellatedNormalsShader(renderer->getDevice(), hwnd);
 
 	// Set shadow map width/height
 	int shadowmapWidth = 2048;
@@ -379,7 +380,7 @@ void App1::firstPass()
 	normalSceneTexture->setRenderTarget(renderer->getDeviceContext());
 	normalSceneTexture->clearRenderTarget(renderer->getDeviceContext(), 0.0f, 0.0f, 1.0f, 1.0f);
 
-	// Clear the scene. (default blue colour)
+	// Update the camera
 	camera->update();
 
 	// get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
@@ -405,6 +406,9 @@ void App1::firstPass()
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), shadowMap->getShaderResourceView(), shadowMap2->getShaderResourceView(), shadowMap3->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
 	tessellationShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
+
+	// Render tessellated shapes normals
+	renderTessellatedNormals();
 
 	// Render earth tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
@@ -711,5 +715,34 @@ void App1::setLightSettings()
 	lights[2]->setDiffuseColour(spotDiffuseColour[0], spotDiffuseColour[1], spotDiffuseColour[2], spotDiffuseColour[3]);
 	lights[2]->setDirection(spotDirection[0], spotDirection[1], spotDirection[2]);
 	lights[2]->setPosition(spotPosition[0], spotPosition[1], spotPosition[2]);
+}
+
+void App1::renderTessellatedNormals()
+{
+	// get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
+	XMMATRIX worldMatrix = renderer->getWorldMatrix();
+	XMMATRIX viewMatrix = camera->getViewMatrix();
+	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
+
+	// Get the elapsed time
+	wavVar.elapsedTime += timer->getTime();
+
+	// Render water tessellated sphere
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 0.0f);
+	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	renderTessNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
+	renderTessNormalsShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
+
+	//// Render earth tessellated sphere
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
+	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	renderTessNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
+	renderTessNormalsShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
+
+	//// Render earth tessellated sphere
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
+	reflectiveTessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	renderTessNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
+	renderTessNormalsShader->render(renderer->getDeviceContext(), reflectiveTessellatedSphereMesh->getIndexCount());
 }
 

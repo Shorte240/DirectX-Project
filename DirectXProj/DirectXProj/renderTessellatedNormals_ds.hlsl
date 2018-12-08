@@ -1,4 +1,4 @@
-// Tessellation domain shader
+// Render tessellated normals domain shader
 // After tessellation the domain shader processes the all the vertices
 
 cbuffer MatrixBuffer : register(b0)
@@ -25,37 +25,25 @@ struct ConstantOutputType
 struct InputType
 {
 	float3 position : POSITION;
-	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-	float4 lightViewPos[3] : TEXCOORD1;
-	float3 worldPosition : TEXCOORD4;
 };
 
 struct OutputType
 {
 	float4 position : POSITION;
-	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
-	float4 lightViewPos[3] : TEXCOORD1;
-	float3 worldPosition : TEXCOORD4;
 };
 
 [domain("quad")]
 OutputType main(ConstantOutputType input, float2 uvCoord : SV_DomainLocation, const OutputPatch<InputType, 4> patch)
 {
 	float3 vertexPosition, vertexNormal;
-    float2 vertexTexCoords;
 	OutputType output;
 
 	// Determine the position of the new vertex.
 	float3 v1 = lerp(patch[0].position, patch[1].position, uvCoord.y);
 	float3 v2 = lerp(patch[3].position, patch[2].position, uvCoord.y);
-    vertexPosition = lerp(v1, v2, uvCoord.x);
-
-    // Determine the texCoord of the new vertex.
-    float2 t1 = lerp(patch[0].tex, patch[1].tex, uvCoord.y);
-    float2 t2 = lerp(patch[3].tex, patch[2].tex, uvCoord.y);
-    vertexTexCoords = lerp(t1, t2, uvCoord.x);
+	vertexPosition = lerp(v1, v2, uvCoord.x);
 
 	// Determine the normal of the new vertex.
 	float3 n1 = lerp(patch[0].normal, patch[1].normal, uvCoord.y);
@@ -63,31 +51,16 @@ OutputType main(ConstantOutputType input, float2 uvCoord : SV_DomainLocation, co
 	vertexNormal = lerp(n1, n2, uvCoord.x);
 
 	// Offset position based on sine wave
-    vertexPosition += vertexNormal * (height * (sin(((vertexNormal * frequency) + (time * speed)))));
+	vertexPosition += vertexNormal * (height * (sin(((vertexNormal * frequency) + (time * speed)))));
 
 	// Calculate the position of the new vertex against the world, view, and projection matrices.
 	output.position = mul(float4(vertexPosition, 1.0f), worldMatrix);
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);
 
-    // Calculate the tex coords.
-    output.tex.x = vertexTexCoords.x;
-    output.tex.y = vertexTexCoords.y;
-
 	//// Calculate the normal vector against the world matrix only and normalise.
 	output.normal = mul(vertexNormal, (float3x3) worldMatrix);
 	output.normal = normalize(output.normal);
-
-	// WHERE ITS MOST LIKELY TO NOT WORK
-	for (int i = 0; i < 3; i++)
-	{
-		output.lightViewPos[i] = patch[i].lightViewPos[i];
-	}
-
-	for (int i = 0; i < 3; i++)
-	{
-		output.worldPosition = patch[i].worldPosition;
-	}
 
 	return output;
 }
