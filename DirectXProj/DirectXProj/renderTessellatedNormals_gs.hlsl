@@ -19,17 +19,17 @@ struct OutputType
 // PointStream, LineStream, TriangleStream
 
 [maxvertexcount(2)]
-void main(triangle InputType input[3], inout LineStream<OutputType> triStream)
+void main(triangle InputType input[3], inout LineStream<OutputType> lineStream)
 {
 	OutputType output;
 
 	for (int i = 0; i < 3; i++)
 	{
 		output.position = input[i].position;
-		triStream.Append(output);
+		lineStream.Append(output);
 
 		output.position = input[i].position + (float4(input[i].normal, 1.0f) * length(input[i].normal));
-		triStream.Append(output);
+		lineStream.Append(output);
 	}
-	triStream.RestartStrip();
+	lineStream.RestartStrip();
 }
