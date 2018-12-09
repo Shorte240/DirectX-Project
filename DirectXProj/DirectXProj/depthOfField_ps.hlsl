@@ -10,7 +10,7 @@ cbuffer DepthBuffer : register(b0)
 	float range;
 	float nearVal;
 	float farVal;
-	float padding;
+	float offset;
 };
 
 struct InputType
@@ -41,7 +41,7 @@ float4 main(InputType input) : SV_TARGET
 	depthTexel *= (farVal - nearVal);
 
 	// Calculate blur factor
-	float blurFactor = saturate(abs(depthTexel - centreDepthTexel) / range);
+	float blurFactor = saturate(abs(depthTexel - centreDepthTexel - offset) / range);
 
 	// Return lerp
 	return lerp(normalScene, blurScene, blurFactor);

@@ -17,13 +17,13 @@ private:
 		float range;
 		float nearVal;
 		float farVal;
-		float padding;
+		float offsetVal;
 	};
 public:
 	DepthOfFieldShader(ID3D11Device* device, HWND hwnd);
 	~DepthOfFieldShader();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection, ID3D11ShaderResourceView* normalSceneTex, ID3D11ShaderResourceView* blurSceneTex, ID3D11ShaderResourceView* depthSceneTex, float range, float nearV, float farV);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection, ID3D11ShaderResourceView* normalSceneTex, ID3D11ShaderResourceView* blurSceneTex, ID3D11ShaderResourceView* depthSceneTex, float range, float nearV, float farV, float offset);
 
 private:
 	void initShader(WCHAR*, WCHAR*);

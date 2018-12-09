@@ -84,6 +84,7 @@ private:
 	float tessellationFactor;
 	float displacementHeight;
 	float depthOfFieldRange;
+	float depthOfFieldOffset;
 	bool renderTopLeftOrthoMesh;
 	bool renderTopRightOrthoMesh;
 	bool renderBottomLeftOrthoMesh;

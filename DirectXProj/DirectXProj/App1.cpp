@@ -83,6 +83,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// Depth of field initial range
 	depthOfFieldRange = 1.0f;
+	depthOfFieldOffset = 0.0f;
 
 	// Bool initial values
 	renderTopLeftOrthoMesh = true;
@@ -386,7 +387,7 @@ void App1::depthOfFieldPass()
 	// Render for Vertical Blur
 	renderer->setZBuffer(false);
 	screenOrthoMesh->sendData(renderer->getDeviceContext());
-	depthOfFieldShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, normalSceneTexture->getShaderResourceView(), verticalBlurTexture->getShaderResourceView(), cameraDepthTexture->getShaderResourceView(), depthOfFieldRange, SCREEN_NEAR, SCREEN_DEPTH);
+	depthOfFieldShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, baseViewMatrix, orthoMatrix, normalSceneTexture->getShaderResourceView(), verticalBlurTexture->getShaderResourceView(), cameraDepthTexture->getShaderResourceView(), depthOfFieldRange, SCREEN_NEAR, SCREEN_DEPTH, depthOfFieldOffset);
 	depthOfFieldShader->render(renderer->getDeviceContext(), screenOrthoMesh->getIndexCount());
 	renderer->setZBuffer(true);
 
@@ -501,6 +502,7 @@ void App1::gui()
 
 	if (ImGui::CollapsingHeader("Depth Of Field", 0))
 	{
+		ImGui::SliderFloat("Offset", &depthOfFieldOffset, -1.0f, 1.0f);
 		ImGui::SliderFloat("Range", &depthOfFieldRange, 0.0f, 2.0f);
 	}
 
