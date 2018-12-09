@@ -623,6 +623,18 @@ void App1::renderTessellatedNormals()
 	// Render water tessellated sphere
 	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
 	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	tessellationShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("water"), tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition(), leftDirectionalLightShadowMap->getShaderResourceView(), rightDirectionalLightShadowMap->getShaderResourceView(), spotLightShadowMap->getShaderResourceView(), lights, spotLightAngle, constantFactor, linearFactor, quadraticFactor);
+	tessellationShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
+
+	// Render earth tessellated sphere
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, -5.0f);
+	earthTessellatedSphereMesh->sendData(renderer->getDeviceContext());
+	displacementShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, textureMgr->getTexture("height"), lights, tessellationFactor, displacementHeight, camera->getPosition(), spotLightAngle, constantFactor, linearFactor, quadraticFactor);
+	displacementShader->render(renderer->getDeviceContext(), earthTessellatedSphereMesh->getIndexCount());
+
+	// Render water tessellated sphere
+	worldMatrix = XMMatrixTranslation(0.0f, 5.0f, 5.0f);
+	waterTessellatedSphereMesh->sendData(renderer->getDeviceContext());
 	renderTessNormalsShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, tessellationFactor, XMFLOAT4(wavVar.elapsedTime, wavVar.height, wavVar.frequency, wavVar.speed), camera->getPosition());
 	renderTessNormalsShader->render(renderer->getDeviceContext(), waterTessellatedSphereMesh->getIndexCount());
 
