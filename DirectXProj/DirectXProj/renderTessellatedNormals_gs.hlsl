@@ -1,4 +1,5 @@
-// Render tessellated normals geometry shader
+// Render Tessellated Normals geometry shader
+// Outputs a line along the length of each normal
 
 struct InputType
 {
@@ -9,7 +10,6 @@ struct InputType
 struct OutputType
 {
 	float4 position : SV_POSITION;
-	//float3 normal : NORMAL;
 };
 
 // Input primitives

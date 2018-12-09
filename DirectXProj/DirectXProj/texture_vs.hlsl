@@ -34,6 +34,7 @@ OutputType main(InputType input)
 	// Store the texture coordinates for the pixel shader.
 	output.tex = input.tex;
 
+	// Store the normals for the pixel shader.
     output.normal = input.normal;
 
 	return output;

@@ -1,5 +1,6 @@
 // Displacement domain shader
-// After tessellation the domain shader processes the all the vertices
+// Re-calculates the vertex position, tex coordinates and normals
+// and passes information to the pixel shader
 
 Texture2D heightTex : register(t0);
 SamplerState sampler0 : register(s0);

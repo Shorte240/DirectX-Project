@@ -23,10 +23,12 @@ OutputType main(InputType input)
 {
 	OutputType output;
 
+	// Calculate the position of the vertex against the world, view, and projection matrices.
 	output.position = mul(input.position, worldMatrix);
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);
 
+	// Set the output texture coordinates
 	output.tex = input.tex;
 
 	return output;

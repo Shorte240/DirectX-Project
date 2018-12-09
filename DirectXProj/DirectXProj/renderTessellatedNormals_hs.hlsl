@@ -1,5 +1,6 @@
 // Render tessellated normals hull shader
 // Prepares control points for tessellation
+// Passes information to the domain shader
 
 cbuffer TessellationBuffer : register(b0)
 {

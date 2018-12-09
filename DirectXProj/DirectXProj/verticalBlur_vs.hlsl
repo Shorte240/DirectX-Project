@@ -1,3 +1,6 @@
+// Vertical Blur vertex shader
+// Passes the position and texture coordinates to the pixel shader
+
 cbuffer MatrixBuffer : register(b0)
 {
 	matrix worldMatrix;
@@ -21,10 +24,12 @@ OutputType main(InputType input)
 {
 	OutputType output;
 
+	// Calculate the position of the vertex against the world, view, and projection matrices.
 	output.position = mul(input.position, worldMatrix);
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);
 
+	// Set the outputs texture coordinates.
 	output.tex = input.tex;
 
 	return output;

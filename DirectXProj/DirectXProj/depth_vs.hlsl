@@ -1,3 +1,6 @@
+// Depth vertex shader
+// Passes position and depth position to the pixel shader
+
 cbuffer MatrixBuffer : register(b0)
 {
     matrix worldMatrix;

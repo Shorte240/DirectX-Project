@@ -1,3 +1,7 @@
+// Vertical Blur pixel shader
+// Blur pixels vertically based on the 4 neighbours above or below
+// of the given centre pixel
+
 Texture2D shaderTexture : register(t0);
 SamplerState SampleType : register(s0);
 

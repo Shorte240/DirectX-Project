@@ -1,5 +1,8 @@
 // Displacement domain shader
-// After tessellation the domain shader processes the all the vertices
+// Re-calculates the vertex position, tex coordinates and normals
+// and passes information to the geometry shader
+// Also calculates the light view position and world position of
+// given lights
 
 Texture2D heightTex : register(t0);
 SamplerState sampler0 : register(s0);

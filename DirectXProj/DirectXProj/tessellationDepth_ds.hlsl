@@ -1,5 +1,6 @@
 // Tessellation domain shader
-// After tessellation the domain shader processes the all the vertices
+// Re-calculates the vertex position, texture coordinates and normals for the given mesh
+// Passes position and depth position to the pixel shader
 
 cbuffer MatrixBuffer : register(b0)
 {

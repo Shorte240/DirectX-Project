@@ -1,3 +1,7 @@
+// Horizontal Blur pixel shader
+// Blur pixels horizontally based on the 4 neighbours left or right
+// of the given centre pixel
+
 Texture2D shaderTexture : register(t0);
 SamplerState SampleType : register(s0);
 

@@ -1,5 +1,8 @@
 // Tessellation domain shader
-// After tessellation the domain shader processes the all the vertices
+// Re-calculates the vertex position, texture coordinates and normals
+// Offsets the position based on the meshes normals via a sin wave
+// Calculates the light view position and world position of given lights
+// Passes information to the geometry shader
 
 cbuffer MatrixBuffer : register(b0)
 {

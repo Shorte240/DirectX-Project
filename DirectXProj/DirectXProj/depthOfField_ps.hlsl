@@ -1,4 +1,6 @@
 // Depth of Field pixel shader
+// Samples the normal, blur and depth textures 
+// then calculates a value to smoothly blur between them.
 
 Texture2D normalSceneTexture : register(t0);
 Texture2D blurSceneTexture : register(t1);

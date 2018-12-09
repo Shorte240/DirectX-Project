@@ -1,5 +1,6 @@
 // Render tessellated normals domain shader
-// After tessellation the domain shader processes the all the vertices
+// Recalculates the vertex position and normals
+// Passes information to the geometry shader
 
 cbuffer MatrixBuffer : register(b0)
 {
@@ -59,7 +60,7 @@ OutputType main(ConstantOutputType input, float2 uvCoord : SV_DomainLocation, co
 	output.position = mul(output.position, viewMatrix);
 	output.position = mul(output.position, projectionMatrix);
 
-	//// Calculate the normal vector against the world matrix only and normalise.
+	// Calculate the normal vector against the world, view, and projection matrices and normalise.
 	output.normal = mul(vertexNormal, (float3x3) worldMatrix);
 	output.normal = mul(output.normal, viewMatrix);
 	output.normal = mul(output.normal, projectionMatrix);
