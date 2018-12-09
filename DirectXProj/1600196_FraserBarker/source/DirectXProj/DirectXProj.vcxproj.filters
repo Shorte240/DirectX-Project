@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Shaders">
+      <UniqueIdentifier>{9f71b1af-e1ce-4e3b-8eea-82e2257a15e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shaders">
+      <UniqueIdentifier>{04fe22ee-da70-433e-9491-b806a8ad4cf0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Shapes">
+      <UniqueIdentifier>{1194a9fd-e39b-480a-8ec2-c73d42408282}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Shapes">
+      <UniqueIdentifier>{6a2fc4da-3e2d-47b4-882a-3441c118fb1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Depth">
+      <UniqueIdentifier>{2ee74d0c-8ae4-47fc-aab6-0826df1de74d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shadow">
+      <UniqueIdentifier>{49f68c93-b6bd-4b20-9069-de78f455e56e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Tessellation">
+      <UniqueIdentifier>{ba63fb81-6b17-4ec2-92bb-725536d26e69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Texture">
+      <UniqueIdentifier>{12232e87-6cc4-41c0-99b0-4897f431ed74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Displacement">
+      <UniqueIdentifier>{c990b8d0-34c6-4aab-af8c-2037b4bdcdb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Blur">
+      <UniqueIdentifier>{0c4d3d93-f442-470f-b332-32a8e4896824}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Depth of Field">
+      <UniqueIdentifier>{4d709dba-7dbd-42ba-9548-011b07208ba3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Tessellation\Normals Rendering">
+      <UniqueIdentifier>{7bc71609-81d7-4953-99a5-c2e23f8954f1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="TessellatedSphereMesh.cpp">
+      <Filter>Source Files\Shapes</Filter>
+    </ClCompile>
+    <ClCompile Include="TessellationShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="TessellationDepthShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="DisplacementShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="DisplacementDepthShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="VerticalBlurShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="HorizontalBlurShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthOfFieldShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTessellatedNormalsShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderDisplacementNormalsShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DepthShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="App1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TessellatedSphereMesh.h">
+      <Filter>Header Files\Shapes</Filter>
+    </ClInclude>
+    <ClInclude Include="TessellationShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="TessellationDepthShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="DisplacementShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="DisplacementDepthShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="VerticalBlurShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="HorizontalBlurShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthOfFieldShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTessellatedNormalsShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderDisplacementNormalsShader.h">
+      <Filter>Header Files\Shaders</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="depth_ps.hlsl">
+      <Filter>Resource Files\Depth</Filter>
+    </FxCompile>
+    <FxCompile Include="depth_vs.hlsl">
+      <Filter>Resource Files\Depth</Filter>
+    </FxCompile>
+    <FxCompile Include="shadow_ps.hlsl">
+      <Filter>Resource Files\Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="shadow_vs.hlsl">
+      <Filter>Resource Files\Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellation_ds.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellation_hs.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellation_ps.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellation_vs.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="texture_ps.hlsl">
+      <Filter>Resource Files\Texture</Filter>
+    </FxCompile>
+    <FxCompile Include="texture_vs.hlsl">
+      <Filter>Resource Files\Texture</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellationDepth_ps.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellationDepth_ds.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="displacement_ds.hlsl">
+      <Filter>Resource Files\Displacement</Filter>
+    </FxCompile>
+    <FxCompile Include="displacementDepth_ds.hlsl">
+      <Filter>Resource Files\Displacement</Filter>
+    </FxCompile>
+    <FxCompile Include="verticalBlur_ps.hlsl">
+      <Filter>Resource Files\Blur</Filter>
+    </FxCompile>
+    <FxCompile Include="verticalBlur_vs.hlsl">
+      <Filter>Resource Files\Blur</Filter>
+    </FxCompile>
+    <FxCompile Include="horizontalBlur_vs.hlsl">
+      <Filter>Resource Files\Blur</Filter>
+    </FxCompile>
+    <FxCompile Include="horizontalBlur_ps.hlsl">
+      <Filter>Resource Files\Blur</Filter>
+    </FxCompile>
+    <FxCompile Include="depthOfField_ps.hlsl">
+      <Filter>Resource Files\Depth of Field</Filter>
+    </FxCompile>
+    <FxCompile Include="depthOfField_vs.hlsl">
+      <Filter>Resource Files\Depth of Field</Filter>
+    </FxCompile>
+    <FxCompile Include="tessellation_gs.hlsl">
+      <Filter>Resource Files\Tessellation</Filter>
+    </FxCompile>
+    <FxCompile Include="renderTessellatedNormals_vs.hlsl">
+      <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="renderTessellatedNormals_ps.hlsl">
+      <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="renderTessellatedNormals_hs.hlsl">
+      <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="renderTessellatedNormals_gs.hlsl">
+      <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="renderTessellatedNormals_ds.hlsl">
+      <Filter>Resource Files\Tessellation\Normals Rendering</Filter>
+    </FxCompile>
+    <FxCompile Include="renderDisplacementNormals_ds.hlsl">
+      <Filter>Resource Files\Displacement</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>
